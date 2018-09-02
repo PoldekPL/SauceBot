@@ -21,9 +21,12 @@ from urllib import parse
 admin_id =""
 
 # GLOBAL VARIABLES
-token_str = ""      # bot login token
-sauce_help = ""     # help message for using SauceNAO
-google_help = ""    # help message for Googling
+token_str = ""              # bot login token
+sauce_help = ""             # help message for using SauceNAO
+google_help = ""            # help message for Googling
+
+batch_users_sauce = []      # list of users currently in sauce batch mode
+batch_users_google = []     # list of users currently in google batch mode
 
 # function to load files
 def loadfiles():
@@ -153,6 +156,7 @@ async def reloadfiles(ctx):
 @bot.command(pass_context = True, aliases = ["s"])
 async def sauce(ctx, *, text: str = None):
     global sauce_help
+    global batch_users_sauce
 
     # analyze the message to decide what's the user's intent
     result = analyzeMessage(ctx.message, text)
@@ -185,6 +189,20 @@ async def sauce(ctx, *, text: str = None):
         else:
             await bot.send_message(ctx.message.channel, "Linked message does not have attached pictures.")
     
+    elif result == "batch start":
+        if ctx.message.author.id not in batch_users_sauce:
+            batch_users_sauce.append(ctx.message.author.id)
+            await bot.send_message(ctx.message.channel, "{}, you're now in *batch mode*. To sauce pictures just attach them to your messages. To leave batch mode, use `!sauce stop`.".format(ctx.message.author.mention))
+        else:
+            await bot.send_message(ctx.message.channel, "{}, you're already in batch mode, now either post images to sauce or leave batch mode with `!sauce stop`!".format(ctx.message.author.mention))
+    
+    elif result == "batch stop":
+        if ctx.message.author.id in batch_users_sauce:
+            batch_users_sauce.remove(ctx.message.author.id)
+            await bot.send_message(ctx.message.channel, "{}, you've left batch mode. To reenable it, use `!sauce start`.".format(ctx.message.author.mention))
+        else:
+            await bot.send_message(ctx.message.channel, "{}, you're not in batch mode! To enable it, use `!sauce start`!".format(ctx.message.author.mention))
+
     return
 
     # # if there message body after !sauce command (link string) is empty
