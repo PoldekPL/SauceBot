@@ -49,6 +49,41 @@ def loadfiles():
 
     return
 
+def analyzeMessage(message: discord.Message, contents: str):
+    #NOTE: I know that using strings as return values is rather lazy, but it's not meant to be a *high performance* bot
+
+    # if message body is empty
+    if contents == None:
+        # if there is a file (or files) attached
+        if len(message.attachments) > 0:
+            return "file"
+        else:
+            # no message, no attachments.
+            return None
+    else:
+        # message body after command is non-empty
+        # does the user want to start batch mode?
+        if contents == "start":
+            return "batch start"
+        # or maybe he wants to stop it?
+        elif contents == "stop":
+            return "batch stop"
+        # if it's not about the batch mode, detect if that's a valid discord message permalink
+        elif re.fullmatch(r"https://discordapp\.com/channels/\d+/\d+/\d+", contents, re.I) != None:
+            return "discord link"
+        # in the end, assume that's just a link to a picture. it's user's responsibility to make sure it's valid
+        else:
+            return "link"
+
+def getAttachmentURLs(message: discord.Message):
+    urls = []
+
+    # iterate over attached files and get their urls
+    for a in message.attachments:
+        urls.append(a['url'])
+
+    return urls
+
 # helper function for getting formatted time for log
 def getLogFormattedTime():
     timestamp_now = time.gmtime()
@@ -116,53 +151,84 @@ async def reloadfiles(ctx):
 
 # SauceNAO
 @bot.command(pass_context = True, aliases = ["s"])
-async def sauce(ctx, *, link: str = None):
+async def sauce(ctx, *, text: str = None):
     global sauce_help
 
-    # if there message body after !sauce command (link string) is empty
-    if link == None:
-        # if there is a file (or files) attached
-        if len(ctx.message.attachments) > 0:
-            # iterate over attached files and create saucenao links with their urls
-            for a in ctx.message.attachments:
-                pic_url = a['url']
-                encoded_url = parse.quote_plus(pic_url)
-                await bot.send_message(ctx.message.channel, "https://saucenao.com/search.php?url={}".format(encoded_url))
-        
-        else:
-            # no message, no attachments. explain command usage
-            await bot.send_message(ctx.message.channel, sauce_help)
-        return
-    else:
-        # there was something after !sauce command, link string is non-empty
-        # detect if that's a valid discord message permalink
-        if re.fullmatch(r"https://discordapp\.com/channels/\d+/\d+/\d+", link, re.I) != None:
-            discord_link = True
-        else:
-            discord_link = False
+    # analyze the message to decide what's the user's intent
+    result = analyzeMessage(ctx.message, text)
 
-    # using discord permalink detection result, either analyze the linked message or directly put given string in saucenao link
-    if discord_link == True:
-        # if that was a message permalink, extract server, channel and message ids
-        ids = re.findall(r"\d+", link, re.I)
+    if result == None:
+        await bot.send_message(ctx.message.channel, sauce_help)
+
+    elif result == "file":
+        # get urls of attached file(s)
+        urls = getAttachmentURLs(ctx.message)
+        # iterate over urls and create SauceNAO links with them (encoded)
+        for u in urls:
+            await bot.send_message(ctx.message.channel, "https://saucenao.com/search.php?url={}".format(parse.quote_plus(u)))
+
+    elif result == "link":
+        await bot.send_message(ctx.message.channel, "https://saucenao.com/search.php?url={}".format(text))
+
+    elif result == "discord link":
+        # so that was a message permalink, now extract server, channel and message ids
+        ids = re.findall(r"\d+", text, re.I)
         # fetch linked message
         linked_message = await bot.get_message(discord.Object(ids[1]), ids[2])
-        # if linked message has file(s) attached
-        if len(linked_message.attachments) > 0:
+        # get url(s) of file(s) attached to linked message
+        urls = getAttachmentURLs(linked_message)
+        # if linked message had file(s) attached
+        if len(urls) > 0:
             # iterate over attached files and create saucenao links with their urls
-            for a in linked_message.attachments:
-                pic_url = a['url']
-                encoded_url = parse.quote_plus(pic_url)
-                await bot.send_message(ctx.message.channel, "https://saucenao.com/search.php?url={}".format(encoded_url))
+            for u in urls:
+                await bot.send_message(ctx.message.channel, "https://saucenao.com/search.php?url={}".format(parse.quote_plus(u)))
         else:
             await bot.send_message(ctx.message.channel, "Linked message does not have attached pictures.")
-        return
-    else:
-        # if that was not a discord message assume it's a permalink to a picture and use that to create saucenao link
-        encoded_url = parse.quote_plus(link)
-        await bot.send_message(ctx.message.channel, "https://saucenao.com/search.php?url={}".format(encoded_url))
+    
+    return
 
-        return
+    # # if there message body after !sauce command (link string) is empty
+    # if link == None:
+    #     # if there is a file (or files) attached
+    #     if len(ctx.message.attachments) > 0:
+    #         # iterate over attached files and create saucenao links with their urls
+    #         for a in ctx.message.attachments:
+    #             pic_url = a['url']
+    #             encoded_url = parse.quote_plus(pic_url)
+    #             await bot.send_message(ctx.message.channel, "https://saucenao.com/search.php?url={}".format(encoded_url))
+        
+    #     else:
+    #         # no message, no attachments. explain command usage
+    #         await bot.send_message(ctx.message.channel, sauce_help)
+    #     return
+    # else:
+    #     # there was something after !sauce command, link string is non-empty
+    #     # detect if that's a valid discord message permalink
+    #     if re.fullmatch(r"https://discordapp\.com/channels/\d+/\d+/\d+", link, re.I) != None:
+    #         discord_link = True
+    #     else:
+    #         discord_link = False
+
+    # # using discord permalink detection result, either analyze the linked message or directly put given string in saucenao link
+    # if discord_link == True:
+    #     # if that was a message permalink, extract server, channel and message ids
+    #     ids = re.findall(r"\d+", link, re.I)
+    #     # fetch linked message
+    #     linked_message = await bot.get_message(discord.Object(ids[1]), ids[2])
+    #     # if linked message has file(s) attached
+    #     if len(linked_message.attachments) > 0:
+    #         # iterate over attached files and create saucenao links with their urls
+    #         for a in linked_message.attachments:
+    #             pic_url = a['url']
+    #             encoded_url = parse.quote_plus(pic_url)
+    #             await bot.send_message(ctx.message.channel, "https://saucenao.com/search.php?url={}".format(encoded_url))
+    #     else:
+    #         await bot.send_message(ctx.message.channel, "Linked message does not have attached pictures.")
+    #     return
+    # else:
+    #     # if that was not a discord message assume it's a permalink to a picture and use that to create saucenao link
+    #     encoded_url = parse.quote_plus(link)
+    #     await bot.send_message(ctx.message.channel, "https://saucenao.com/search.php?url={}".format(encoded_url))
 
 # Google Reverse Image Search
 @bot.command(pass_context = True, aliases = ["g"])
