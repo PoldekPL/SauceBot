@@ -1,10 +1,12 @@
 There are multiple ways to use Google search by image through SauceBot:
 
 **1. Attach a file.**
-To search a single file, attach it to a message saying `!google`. If you're on mobile, it is possible to send a message with multiple files attached, and they all will be searched. On desktop, every file is a separate message, so you need to remember to type `!google` for each of them.
-**2. Discord message permalink.**
+To search a single file, attach it to a message saying `!google`. If you're on mobile, it is possible to send a message with multiple files attached, and they all will be searched. On desktop, every file is a separate message, so you need to remember to type `!google` for each of them. Alternatively, check method **2.**
+**2. Batch mode.**
+For when you got a lot of picture you want to find the sources for, there is batch mode. Enable it with `!google start`, then just post pictures - for each message with picture you send, bot will try to google it. To leave batch mode, use `!google stop`. Remember that it only works for pictures you send, not links.
+**3. Discord message permalink.**
 If you've got Developer Mode enabled (which is a good, non-intrusive thing to have enabled in general), every message will have in the little menu on the right an option to copy permalink to it. By sending a message saying `!google [message permalink]`, the linked message will be fetched and analyzed and all files attached to it will be searched.
-**3. Picture permalink**
+**4. Picture permalink**
 Lastly, you can just use any link that leads to a picture, by typing `!google [link]`. As SauceBot will just paste the link you gave it into Google link, it's your job to check that it's a valid link.
 
 The shorthand for `!google` command is `!g`.
