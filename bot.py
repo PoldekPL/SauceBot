@@ -172,7 +172,7 @@ async def sauce(ctx, *, text: str = None):
             await bot.send_message(ctx.message.channel, "https://saucenao.com/search.php?url={}".format(parse.quote_plus(u)))
 
     elif result == "link":
-        await bot.send_message(ctx.message.channel, "https://saucenao.com/search.php?url={}".format(text))
+        await bot.send_message(ctx.message.channel, "https://saucenao.com/search.php?url={}".format(parse.quote_plus(text)))
 
     elif result == "discord link":
         # so that was a message permalink, now extract server, channel and message ids
@@ -225,7 +225,7 @@ async def google(ctx, *, text: str = None):
             await bot.send_message(ctx.message.channel, "https://www.google.com/searchbyimage?&image_url={}".format(parse.quote_plus(u)))
 
     elif result == "link":
-        await bot.send_message(ctx.message.channel, "https://www.google.com/searchbyimage?&image_url={}".format(text))
+        await bot.send_message(ctx.message.channel, "https://www.google.com/searchbyimage?&image_url={}".format(parse.quote_plus(text)))
 
     elif result == "discord link":
         # so that was a message permalink, now extract server, channel and message ids
