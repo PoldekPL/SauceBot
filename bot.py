@@ -255,6 +255,30 @@ async def google(ctx, *, link: str = None):
 
         return
 
+# universal on_message function
+@bot.event
+async def on_message(message: discord.Message):
+    global batch_users_sauce
+    global batch_users_google
+
+    if message.author == bot.user:
+        return      # don't reply to yourself
+    
+    if message.content == "!s stop" or message.content == "!sauce stop" or message.content == "!g stop" or message.content == "!google stop":
+        await bot.process_commands(message)
+        return      # don't do anything if user wants to leave batch mode
+
+    # if given user has batch mode enabled, constantly sauce pictures he's posting
+    if message.author.id in batch_users_sauce:
+        urls = getAttachmentURLs(message)
+        if len(urls) > 0:
+            for u in urls:
+                await bot.send_message(message.channel, "https://saucenao.com/search.php?url={}".format(parse.quote_plus(u)))
+        else:
+            await bot.send_message(message.channel, "{}, you're in batch mode. Please post pictures to sauce. To leave batch mode, use `!sauce stop`!".format(message.author.mention))
+
+    await bot.process_commands(message)
+
 # command exception handler
 @bot.event
 async def on_command_error(exception, ctx: discord.ext.commands.Context):
