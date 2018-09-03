@@ -1,9 +1,9 @@
 There are multiple ways to use SauceNAO through SauceBot:
 
 **1. Attach a file.**
-To sauce a single file, attach it to a message saying `!sauce`. If you're on mobile, it is possible to send a message with multiple files attached, and they all will be sauced. On desktop, every file is a separate message, so you need to remember to type `!sauce` for each of them.
+To sauce a single file, attach it to a message saying `!sauce`. If you're on mobile, it is possible to send a message with multiple files attached, and they all will be sauced. On desktop, every file is a separate message, so you need to remember to type `!sauce` for each of them. Alternatively, check method **2.**
 **2. Batch mode.**
-For when you got a lot of picture you want to find the sources for, there is batch mode. Enable it with `!sauce start`, then just post pictures - for each message with picture you send, bot will try to sauce it. To leave batch mode, use `!sauce stop`.
+For when you got a lot of picture you want to find the sources for, there is batch mode. Enable it with `!sauce start`, then just post pictures - for each message with picture you send, bot will try to sauce it. To leave batch mode, use `!sauce stop`. Remember that it only works for pictures you send, not links.
 **3. Discord message permalink.**
 If you've got Developer Mode enabled (which is a good, non-intrusive thing to have enabled in general), every message will have in the little menu on the right an option to copy permalink to it. By sending a message saying `!sauce [message permalink]`, the linked message will be fetched and analyzed and all files attached to it will be sauced.
 **4. Picture permalink**
