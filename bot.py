@@ -246,7 +246,7 @@ async def on_message(message: discord.Message):
             for u in urls:
                 await bot.send_message(message.channel, "https://saucenao.com/search.php?url={}".format(parse.quote_plus(u)))
         else:
-            await bot.send_message(message.channel, "{}, you're in batch mode. Please post pictures to sauce. To leave batch mode, use `!sauce stop`!".format(message.author.mention))
+            await bot.send_message(message.channel, "{}, you're in batch mode. Please post pictures to find sauce for. To leave batch mode, use `!sauce stop`!".format(message.author.mention))
 
     # if given user has (google) batch mode enabled, constantly google pictures he's posting
     if message.author.id in batch_users_google:
