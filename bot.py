@@ -130,7 +130,7 @@ async def restart(ctx):
         await react_cross(ctx.message)
         await bot.send_message(ctx.message.channel, "You do not have permissions to restart the bot!")
 
-# bot and server status
+# bot status
 @bot.command(pass_context = True)
 async def status(ctx):
     pver = sys.version_info
@@ -138,7 +138,7 @@ async def status(ctx):
     status_embed = discord.Embed(title = "Ready.", colour = 0x3c4b72)
     status_embed.set_thumbnail(url = bot.user.avatar_url)
     status_embed.add_field(name = "discord.py version", value = "%s, running under Python %d.%d.%d" % (discord.__version__, pver[0], pver[1], pver[2]))
-    status_embed.set_footer(text = "To read about how to use the SauceBot, use !sauce")
+    status_embed.set_footer(text = "To read about how to use the SauceBot, use !sauce or !google")
 
     await bot.send_message(ctx.message.channel, embed = status_embed)
 
