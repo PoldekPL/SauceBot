@@ -86,6 +86,71 @@ def getAttachmentURLs(message: discord.Message):
 
     return urls
 
+# function name may not be creative, but it is true
+async def commonFunction(ctx: discord.ext.commands.Context, text: str, command: str):
+    global sauce_help
+    global google_help
+    global batch_users_sauce
+    global batch_users_google
+
+    if command == "sauce":
+        help_str = sauce_help
+        batch_users = batch_users_sauce
+        link_first_half = "https://saucenao.com/search.php?url="
+        verb = "find sauce for"
+    elif command == "google":
+        help_str = google_help
+        batch_users = batch_users_google
+        link_first_half = "https://www.google.com/searchbyimage?&image_url="
+        verb = "google"
+
+    # analyze the message to decide what's the user's intent
+    result = analyzeMessage(ctx.message, text)
+
+    if result == None:
+        await bot.send_message(ctx.message.channel, help_str)
+
+    elif result == "file":
+        # get urls of attached file(s)
+        urls = getAttachmentURLs(ctx.message)
+        # iterate over urls and create percent encoded links with them
+        for u in urls:
+            await bot.send_message(ctx.message.channel, "{}{}".format(link_first_half, parse.quote_plus(u)))
+
+    elif result == "link":
+        await bot.send_message(ctx.message.channel, "{}{}".format(link_first_half, parse.quote_plus(text)))
+
+    elif result == "discord link":
+        # so that was a message permalink, now extract server, channel and message ids
+        ids = re.findall(r"\d+", text, re.I)
+        # fetch linked message
+        linked_message = await bot.get_message(discord.Object(ids[1]), ids[2])
+        # get url(s) of file(s) attached to linked message
+        urls = getAttachmentURLs(linked_message)
+        # if linked message had file(s) attached
+        if len(urls) > 0:
+            # iterate over attached files and create links with their urls
+            for u in urls:
+                await bot.send_message(ctx.message.channel, "{}{}".format(link_first_half, parse.quote_plus(u)))
+        else:
+            await bot.send_message(ctx.message.channel, "Linked message does not have attached pictures.")
+
+    elif result == "batch start":
+        if ctx.message.author.id not in batch_users:
+            batch_users.append(ctx.message.author.id)
+            await bot.send_message(ctx.message.channel, "{}, you're now in *batch mode*. To {} pictures just attach them to your messages. To leave batch mode, use `!{} stop`.".format(ctx.message.author.mention, verb, command))
+        else:
+            await bot.send_message(ctx.message.channel, "{}, you're already in batch mode, now either post images to {} or leave batch mode with `!{} stop`!".format(ctx.message.author.mention, verb, command))
+    
+    elif result == "batch stop":
+        if ctx.message.author.id in batch_users:
+            batch_users.remove(ctx.message.author.id)
+            await bot.send_message(ctx.message.channel, "{}, you've left batch mode. To reenable it, use `!{} start`.".format(ctx.message.author.mention, command))
+        else:
+            await bot.send_message(ctx.message.channel, "{}, you're not in batch mode! To enable it, use `!{} start`!".format(ctx.message.author.mention, command))
+
+    return
+
 # helper function for getting formatted time for log
 def getLogFormattedTime():
     timestamp_now = time.gmtime()
@@ -154,108 +219,12 @@ async def reloadfiles(ctx):
 # SauceNAO
 @bot.command(pass_context = True, aliases = ["s"])
 async def sauce(ctx, *, text: str = None):
-    global sauce_help
-    global batch_users_sauce
-
-    # analyze the message to decide what's the user's intent
-    result = analyzeMessage(ctx.message, text)
-
-    if result == None:
-        await bot.send_message(ctx.message.channel, sauce_help)
-
-    elif result == "file":
-        # get urls of attached file(s)
-        urls = getAttachmentURLs(ctx.message)
-        # iterate over urls and create SauceNAO links with them (encoded)
-        for u in urls:
-            await bot.send_message(ctx.message.channel, "https://saucenao.com/search.php?url={}".format(parse.quote_plus(u)))
-
-    elif result == "link":
-        await bot.send_message(ctx.message.channel, "https://saucenao.com/search.php?url={}".format(parse.quote_plus(text)))
-
-    elif result == "discord link":
-        # so that was a message permalink, now extract server, channel and message ids
-        ids = re.findall(r"\d+", text, re.I)
-        # fetch linked message
-        linked_message = await bot.get_message(discord.Object(ids[1]), ids[2])
-        # get url(s) of file(s) attached to linked message
-        urls = getAttachmentURLs(linked_message)
-        # if linked message had file(s) attached
-        if len(urls) > 0:
-            # iterate over attached files and create saucenao links with their urls
-            for u in urls:
-                await bot.send_message(ctx.message.channel, "https://saucenao.com/search.php?url={}".format(parse.quote_plus(u)))
-        else:
-            await bot.send_message(ctx.message.channel, "Linked message does not have attached pictures.")
-    
-    elif result == "batch start":
-        if ctx.message.author.id not in batch_users_sauce:
-            batch_users_sauce.append(ctx.message.author.id)
-            await bot.send_message(ctx.message.channel, "{}, you're now in *batch mode*. To sauce pictures just attach them to your messages. To leave batch mode, use `!sauce stop`.".format(ctx.message.author.mention))
-        else:
-            await bot.send_message(ctx.message.channel, "{}, you're already in batch mode, now either post images to sauce or leave batch mode with `!sauce stop`!".format(ctx.message.author.mention))
-    
-    elif result == "batch stop":
-        if ctx.message.author.id in batch_users_sauce:
-            batch_users_sauce.remove(ctx.message.author.id)
-            await bot.send_message(ctx.message.channel, "{}, you've left batch mode. To reenable it, use `!sauce start`.".format(ctx.message.author.mention))
-        else:
-            await bot.send_message(ctx.message.channel, "{}, you're not in batch mode! To enable it, use `!sauce start`!".format(ctx.message.author.mention))
-
-    return
+    await commonFunction(ctx, text, "sauce")
 
 # Google Reverse Image Search
 @bot.command(pass_context = True, aliases = ["g"])
 async def google(ctx, *, text: str = None):
-    global google_help
-    global batch_users_google
-
-    # analyze the message to decide what's the user's intent
-    result = analyzeMessage(ctx.message, text)
-
-    if result == None:
-        await bot.send_message(ctx.message.channel, google_help)
-
-    elif result == "file":
-        # get urls of attached file(s)
-        urls = getAttachmentURLs(ctx.message)
-        # iterate over urls and create google links with them (encoded)
-        for u in urls:
-            await bot.send_message(ctx.message.channel, "https://www.google.com/searchbyimage?&image_url={}".format(parse.quote_plus(u)))
-
-    elif result == "link":
-        await bot.send_message(ctx.message.channel, "https://www.google.com/searchbyimage?&image_url={}".format(parse.quote_plus(text)))
-
-    elif result == "discord link":
-        # so that was a message permalink, now extract server, channel and message ids
-        ids = re.findall(r"\d+", text, re.I)
-        # fetch linked message
-        linked_message = await bot.get_message(discord.Object(ids[1]), ids[2])
-        # get url(s) of file(s) attached to linked message
-        urls = getAttachmentURLs(linked_message)
-        # if linked message had file(s) attached
-        if len(urls) > 0:
-            # iterate over attached files and create google links with their urls
-            for u in urls:
-                await bot.send_message(ctx.message.channel, "https://www.google.com/searchbyimage?&image_url={}".format(parse.quote_plus(u)))
-        else:
-            await bot.send_message(ctx.message.channel, "Linked message does not have attached pictures.")
-    
-    elif result == "batch start":
-        if ctx.message.author.id not in batch_users_google:
-            batch_users_google.append(ctx.message.author.id)
-            await bot.send_message(ctx.message.channel, "{}, you're now in *batch mode*. To google pictures just attach them to your messages. To leave batch mode, use `!google stop`.".format(ctx.message.author.mention))
-        else:
-            await bot.send_message(ctx.message.channel, "{}, you're already in batch mode, now either post images to google or leave batch mode with `!google stop`!".format(ctx.message.author.mention))
-    
-    elif result == "batch stop":
-        if ctx.message.author.id in batch_users_google:
-            batch_users_google.remove(ctx.message.author.id)
-            await bot.send_message(ctx.message.channel, "{}, you've left batch mode. To reenable it, use `!google start`.".format(ctx.message.author.mention))
-        else:
-            await bot.send_message(ctx.message.channel, "{}, you're not in batch mode! To enable it, use `!google start`!".format(ctx.message.author.mention))
-
-    return
+    await commonFunction(ctx, text, "google")
 
 # universal on_message function
 @bot.event
