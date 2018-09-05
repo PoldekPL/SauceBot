@@ -235,11 +235,12 @@ async def on_message(message: discord.Message):
     if message.author == bot.user:
         return      # don't reply to yourself
     
-    if message.content == "!s stop" or message.content == "!sauce stop" or message.content == "!g stop" or message.content == "!google stop":
+    if message.content.find("start") != -1 or message.content.find("stop") != -1:
+        # don't do anything if user wants to leave batch mode or enable it for other service
         await bot.process_commands(message)
-        return      # don't do anything if user wants to leave batch mode
+        return
 
-    # if given user has (sauce) batch mode enabled, constantly sauce pictures he's posting
+    # if given user has sauce batch mode enabled, constantly find source for pictures he's posting
     if message.author.id in batch_users_sauce:
         urls = getAttachmentURLs(message)
         if len(urls) > 0:
@@ -248,7 +249,7 @@ async def on_message(message: discord.Message):
         else:
             await bot.send_message(message.channel, "{}, you're in batch mode. Please post pictures to find sauce for. To leave batch mode, use `!sauce stop`!".format(message.author.mention))
 
-    # if given user has (google) batch mode enabled, constantly google pictures he's posting
+    # if given user has google batch mode enabled, constantly google pictures he's posting
     if message.author.id in batch_users_google:
         urls = getAttachmentURLs(message)
         if len(urls) > 0:
