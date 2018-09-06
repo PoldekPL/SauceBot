@@ -9,6 +9,7 @@ import sys
 import traceback
 import os
 import os.path
+import subprocess
 import functools
 import re
 from urllib import parse
@@ -292,4 +293,16 @@ async def on_ready():
     
     await bot.change_presence(game=discord.Game(name="!sauce || !google", url=None, type=0), status=None, afk=False)
 
-bot.run(token_str)
+def restartHandler():
+    # test for internet connection before restarting the bot
+    # for good measure, test two different IP addresses
+    while subprocess.run(args = ['ping', '-c 1', '8.8.8.8']).returncode != 0 and subprocess.run(args = ['ping', '-c 1', '1.1.1.1']).returncode != 0:
+        time.sleep(5)
+
+    os.execl(os.path.abspath(__file__), "")
+
+try:
+    bot.run(token_str)
+except:
+    # in case of any error, restart the bot
+    restartHandler()
