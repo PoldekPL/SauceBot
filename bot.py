@@ -52,7 +52,7 @@ def loadfiles():
 
     return
 
-def analyzeMessage(message: discord.Message, contents: str):
+def analyzeCommand(message: discord.Message, contents: str):
     #NOTE: I know that using strings as return values is rather lazy, but it's not meant to be a *high performance* bot
 
     # if message body is empty
@@ -106,7 +106,7 @@ async def commonFunction(ctx: discord.ext.commands.Context, text: str, command: 
         verb = "google"
 
     # analyze the message to decide what's the user's intent
-    result = analyzeMessage(ctx.message, text)
+    result = analyzeCommand(ctx.message, text)
 
     if result == None:
         await bot.send_message(ctx.message.channel, help_str)
