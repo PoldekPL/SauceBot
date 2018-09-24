@@ -104,6 +104,11 @@ async def commonFunction(ctx: discord.ext.commands.Context, text: str, command: 
         batch_users = batch_users_google
         link_first_half = "https://www.google.com/searchbyimage?&image_url="
         verb = "google"
+    elif command == "tineye":
+        help_str = None
+        batch_users = None
+        link_first_half = "https://www.tineye.com/search?url="
+        verb = None
 
     # analyze the message to decide what's the user's intent
     result = analyzeCommand(ctx.message, text)
@@ -226,6 +231,11 @@ async def sauce(ctx, *, text: str = None):
 @bot.command(pass_context = True, aliases = ["g"])
 async def google(ctx, *, text: str = None):
     await commonFunction(ctx, text, "google")
+
+# TinEye
+@bot.command(pass_context = True, aliases = ["t"])
+async def tineye(ctx, *, text: str = None):
+    await commonFunction(ctx, text, "tineye")
 
 # universal on_message function
 @bot.event
