@@ -274,6 +274,8 @@ async def on_command_error(exception, ctx: discord.ext.commands.Context):
 async def on_ready():
     print("\n###\n[{}]: k. running as {}, discord.py version {}\n###\n".format(getLogFormattedTime(), bot.user.name, discord.__version__))
 
+    await bot.change_presence(game=discord.Game(name="!sauce || !google", url=None, type=0), status=None, afk=False)
+
     # if the bot bot was restarted with a restart message, tick it after the restart
     if os.path.exists("./restart_msg_id"):
         f = open("./restart_msg_id", "r")
@@ -290,15 +292,14 @@ async def on_ready():
         await react_tick(restart_msg)
 
         os.remove("./restart_msg_id")
-    
-    await bot.change_presence(game=discord.Game(name="!sauce || !google", url=None, type=0), status=None, afk=False)
 
 def restartHandler():
     # test for internet connection before restarting the bot
     # for good measure, test two different IP addresses
-    while subprocess.run(args = ['ping', '-c 1', '8.8.8.8']).returncode != 0 and subprocess.run(args = ['ping', '-c 1', '1.1.1.1']).returncode != 0:
-        time.sleep(5)
+    while subprocess.run(args = ['ping', '-c', '1', '8.8.8.8']).returncode != 0 and subprocess.run(args = ['ping', '-c', '1', '1.1.1.1']).returncode != 0:
+        time.sleep(3)
 
+    print("[{}]: Had to restart with restartHandler".format(getLogFormattedTime()))
     os.execl(os.path.abspath(__file__), "")
 
 try:
