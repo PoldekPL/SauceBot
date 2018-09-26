@@ -65,14 +65,8 @@ def analyzeCommand(message: discord.Message, contents: str):
             return None
     else:
         # message body after command is non-empty
-        # does the user want to start batch mode?
-        if contents == "start":
-            return "batch start"
-        # or maybe he wants to stop it?
-        elif contents == "stop":
-            return "batch stop"
-        # if it's not about the batch mode, detect if that's a valid discord message permalink
-        elif re.fullmatch(r"https://discordapp\.com/channels/\d+/\d+/\d+", contents, re.I) != None:
+        # detect if that's a valid discord message permalink
+        if re.fullmatch(r"https://discordapp\.com/channels/\d+/\d+/\d+", contents, re.I) != None:
             return "discord link"
         # in the end, assume that's just a link to a picture. it's user's responsibility to make sure it's valid
         else:
@@ -91,24 +85,16 @@ def getAttachmentURLs(message: discord.Message):
 async def commonFunction(ctx: discord.ext.commands.Context, text: str, command: str):
     global sauce_help
     global google_help
-    global batch_users_sauce
-    global batch_users_google
 
     if command == "sauce":
         help_str = sauce_help
-        batch_users = batch_users_sauce
         link_first_half = "https://saucenao.com/search.php?url="
-        verb = "find sauce for"
     elif command == "google":
         help_str = google_help
-        batch_users = batch_users_google
         link_first_half = "https://www.google.com/searchbyimage?&image_url="
-        verb = "google"
     elif command == "tineye":
         help_str = None
-        batch_users = None
         link_first_half = "https://www.tineye.com/search?url="
-        verb = None
 
     # analyze the message to decide what's the user's intent
     result = analyzeCommand(ctx.message, text)
@@ -140,20 +126,6 @@ async def commonFunction(ctx: discord.ext.commands.Context, text: str, command: 
                 await bot.send_message(ctx.message.channel, "{}{}".format(link_first_half, parse.quote_plus(u)))
         else:
             await bot.send_message(ctx.message.channel, "Linked message does not have attached pictures.")
-
-    elif result == "batch start":
-        if ctx.message.author.id not in batch_users:
-            batch_users.append(ctx.message.author.id)
-            await bot.send_message(ctx.message.channel, "{}, you're now in *batch mode*. To {} pictures just attach them to your messages. To leave batch mode, use `!{} stop`.".format(ctx.message.author.mention, verb, command))
-        else:
-            await bot.send_message(ctx.message.channel, "{}, you're already in batch mode, now either post images to {} or leave batch mode with `!{} stop`!".format(ctx.message.author.mention, verb, command))
-    
-    elif result == "batch stop":
-        if ctx.message.author.id in batch_users:
-            batch_users.remove(ctx.message.author.id)
-            await bot.send_message(ctx.message.channel, "{}, you've left batch mode. To reenable it, use `!{} start`.".format(ctx.message.author.mention, command))
-        else:
-            await bot.send_message(ctx.message.channel, "{}, you're not in batch mode! To enable it, use `!{} start`!".format(ctx.message.author.mention, command))
 
     return
 
@@ -237,6 +209,75 @@ async def google(ctx, *, text: str = None):
 async def tineye(ctx, *, text: str = None):
     await commonFunction(ctx, text, "tineye")
 
+# batch mode
+@bot.command(pass_context = True, aliases = ["b"])
+async def batch(ctx, *, text: str = None):
+    global batch_users_google
+    global batch_users_sauce
+
+    loop = True
+    while(loop):
+        # show embed with current state of batch mode for user using the command
+        batch_embed = discord.Embed(title = "Batch mode", colour = 0xb29a80)
+
+        batch_embed.add_field(name = "What is batch mode", value = "Batch mode allows you to find sources for large quantities of pictures. When enabled for at least one service, every time you send a message with attached picture(s), in response you will reveive link(s) that allow you to check with just one click if the source is known. Remember, in batch mode only *pictures attached* will be checked, not any links in messages.")
+
+        batch_embed.add_field(name = "How to control batch mode", value = "Toggle single services with appropriate reactions. To confirm what you set, use :white_check_mark:. To disable them all and stop batch mode, use :stop_sign:")
+
+        embed_content = ""
+        if(ctx.message.author.id in batch_users_sauce):
+            embed_content += ":white_check_mark: SauceNAO\n"
+        else:
+            embed_content += ":x: SauceNAO\n"
+
+        if(ctx.message.author.id in batch_users_google):
+            embed_content += ":white_check_mark: Google"
+        else:
+            embed_content += ":x: Google"
+
+        batch_embed.add_field(name = "Enabled reverse search engines for {}:".format(ctx.message.author.name), value = embed_content)
+        msg_sent = await bot.send_message(ctx.message.channel, embed = batch_embed)
+
+        await bot.add_reaction(msg_sent, '🇸')
+        await bot.add_reaction(msg_sent, '🇬')
+        # await bot.add_reaction(msg_sent, '🇹')
+        await bot.add_reaction(msg_sent, '✅')
+        await bot.add_reaction(msg_sent, '🛑')
+
+        def check(reaction : discord.Reaction, user : discord.Member):
+            return user == ctx.message.author
+        res = await bot.wait_for_reaction(message=msg_sent, check = check)
+
+        await bot.delete_message(msg_sent)
+
+        if(res.reaction.emoji == '🇸'):     # toggle saucenao
+            if ctx.message.author.id not in batch_users_sauce:
+                batch_users_sauce.append(ctx.message.author.id)
+            else:
+                batch_users_sauce.remove(ctx.message.author.id)
+
+        if(res.reaction.emoji == '🇬'):     # toggle google
+            if ctx.message.author.id not in batch_users_google:
+                batch_users_google.append(ctx.message.author.id)
+            else:
+                batch_users_google.remove(ctx.message.author.id)
+
+        # if(res.reaction.emoji == '🇹'):     # toggle tineye
+
+        if(res.reaction.emoji == '✅'):
+            await bot.send_message(ctx.message.channel, ":white_check_mark: Your settings have been saved.")
+            loop = False
+
+        if(res.reaction.emoji == '🛑'):
+            # remove user id from all lists
+            if ctx.message.author.id in batch_users_sauce:
+                batch_users_sauce.remove(ctx.message.author.id)
+            if ctx.message.author.id in batch_users_google:
+                batch_users_google.remove(ctx.message.author.id)
+
+            await bot.send_message(ctx.message.channel, ":stop_sign: You have stopped batch mode. All services have been disabled.")
+            loop = False
+
 # universal on_message function
 @bot.event
 async def on_message(message: discord.Message):
@@ -245,29 +286,24 @@ async def on_message(message: discord.Message):
 
     if message.author == bot.user:
         return      # don't reply to yourself
-    
-    if message.content.find("start") != -1 or message.content.find("stop") != -1:
-        # don't do anything if user wants to leave batch mode or enable it for other service
+
+    # don't do anything if user wants to control batch mode
+    if message.content.startswith("!b") or message.content.startswith("!batch"):
         await bot.process_commands(message)
         return
 
-    # if given user has sauce batch mode enabled, constantly find source for pictures he's posting
-    if message.author.id in batch_users_sauce:
+    # if given user has sauce batch mode enabled
+    if message.author.id in batch_users_google or message.author.id in batch_users_sauce:
         urls = getAttachmentURLs(message)
         if len(urls) > 0:
-            for u in urls:
-                await bot.send_message(message.channel, "https://saucenao.com/search.php?url={}".format(parse.quote_plus(u)))
+            if message.author.id in batch_users_sauce:
+                for u in urls:
+                    await bot.send_message(message.channel, "SauceNAO: https://saucenao.com/search.php?url={}".format(parse.quote_plus(u)))
+            if message.author.id in batch_users_google:
+                for u in urls:
+                    await bot.send_message(message.channel, "Google: https://www.google.com/searchbyimage?&image_url={}".format(parse.quote_plus(u)))
         else:
-            await bot.send_message(message.channel, "{}, you're in batch mode. Please post pictures to find sauce for. To leave batch mode, use `!sauce stop`!".format(message.author.mention))
-
-    # if given user has google batch mode enabled, constantly google pictures he's posting
-    if message.author.id in batch_users_google:
-        urls = getAttachmentURLs(message)
-        if len(urls) > 0:
-            for u in urls:
-                await bot.send_message(message.channel, "https://www.google.com/searchbyimage?&image_url={}".format(parse.quote_plus(u)))
-        else:
-            await bot.send_message(message.channel, "{}, you're in batch mode. Please post pictures to google. To leave batch mode, use `!google stop`!".format(message.author.mention))
+            await bot.send_message(message.channel, "{}, you're in batch mode. If you want to disable it, use `!batch`!".format(message.author.mention))
 
     await bot.process_commands(message)
 
