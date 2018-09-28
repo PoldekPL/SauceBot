@@ -39,17 +39,17 @@ def loadfiles():
     file.close()
 
     global admin_id
-    file2 = open(current_path + "my_id", "r")
+    file2 = open(current_path + "/my_id", "r")
     admin_id = file2.read()
     file2.close()
 
     global sauce_help
-    file3 = open(current_path + "sauce_help", "r")
+    file3 = open(current_path + "/sauce_help", "r")
     sauce_help = file3.read()
     file3.close()
 
     global google_help
-    file4 = open(current_path + "google_help", "r")
+    file4 = open(current_path + "/google_help", "r")
     google_help = file4.read()
     file4.close()
 
