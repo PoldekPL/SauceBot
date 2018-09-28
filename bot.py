@@ -342,7 +342,7 @@ async def on_ready():
 def restartHandler():
     # test for internet connection before restarting the bot
     # for good measure, test two different IP addresses
-    while subprocess.run(args = ['ping', '-c', '1', '8.8.8.8']).returncode != 0 and subprocess.run(args = ['ping', '-c', '1', '1.1.1.1']).returncode != 0:
+    while subprocess.run(args = ['ping', '-c', '1', '8.8.8.8'], stdout = subprocess.DEVNULL).returncode != 0 and subprocess.run(args = ['ping', '-c', '1', '1.1.1.1'], stdout = subprocess.DEVNULL).returncode != 0:
         time.sleep(3)
 
     print("[{}]: Had to restart with restartHandler".format(getLogFormattedTime()))
