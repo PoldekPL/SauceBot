@@ -330,7 +330,7 @@ async def on_ready():
     await bot.change_presence(game=discord.Game(name="!sauce || !google", url=None, type=0), status=None, afk=False)
 
     # if the bot bot was restarted with a restart message, tick it after the restart
-    if os.path.exists("./restart_msg_id"):
+    if os.path.exists(current_path + "/restart_msg_id"):
         f = open(current_path + "/restart_msg_id", "r")
         msg_id_str = f.read()
         f.close()
@@ -344,7 +344,7 @@ async def on_ready():
         await bot.remove_reaction(restart_msg, '♻', bot.user)
         await react_tick(restart_msg)
 
-        os.remove("./restart_msg_id")
+        os.remove(current_path + "/restart_msg_id")
 
 def restartHandler():
     # test for internet connection before restarting the bot
