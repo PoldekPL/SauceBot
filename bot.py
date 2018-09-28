@@ -15,6 +15,7 @@ import re
 from urllib import parse
 
 # CONSTANTS
+current_path = sys.path[0]
 # channel ids
 
 # user ids
@@ -30,23 +31,25 @@ batch_users_google = []     # list of users currently in google batch mode
 
 # function to load files
 def loadfiles():
+    global current_path
+
     global token_str
-    file = open("token", "r")
+    file = open(current_path + "/token", "r")
     token_str = file.read()
     file.close()
 
     global admin_id
-    file2 = open("my_id", "r")
+    file2 = open(current_path + "my_id", "r")
     admin_id = file2.read()
     file2.close()
 
     global sauce_help
-    file3 = open("sauce_help", "r")
+    file3 = open(current_path + "sauce_help", "r")
     sauce_help = file3.read()
     file3.close()
 
     global google_help
-    file4 = open("google_help", "r")
+    file4 = open(current_path + "google_help", "r")
     google_help = file4.read()
     file4.close()
 
@@ -155,12 +158,14 @@ async def react_cycle(message):
 # restart command
 @bot.command(aliases = ['reload'], pass_context = True)
 async def restart(ctx):
+    global current_path
+
     if ctx.message.author.id == admin_id:
         # log the use of restart command
         print("\n{}: Rebooting due to restart command.\n".format(getLogFormattedTime()))
         await react_cycle(ctx.message)
         # save the id of the message to tick after reboot
-        f = open("./restart_msg_id", "w+")
+        f = open(current_path + "/restart_msg_id", "w+")
         f.write(ctx.message.id)
         f.write(" ")
         f.write(ctx.message.channel.id)
@@ -318,13 +323,15 @@ async def on_command_error(exception, ctx: discord.ext.commands.Context):
 # what to do on successful boot
 @bot.event
 async def on_ready():
+    global current_path
+
     print("###\n[{}]: k. running as {}, discord.py version {}\n###".format(getLogFormattedTime(), bot.user.name, discord.__version__))
 
     await bot.change_presence(game=discord.Game(name="!sauce || !google", url=None, type=0), status=None, afk=False)
 
     # if the bot bot was restarted with a restart message, tick it after the restart
     if os.path.exists("./restart_msg_id"):
-        f = open("./restart_msg_id", "r")
+        f = open(current_path + "/restart_msg_id", "r")
         msg_id_str = f.read()
         f.close()
 
