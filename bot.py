@@ -318,7 +318,7 @@ async def on_command_error(exception, ctx: discord.ext.commands.Context):
 # what to do on successful boot
 @bot.event
 async def on_ready():
-    print("\n###\n[{}]: k. running as {}, discord.py version {}\n###\n".format(getLogFormattedTime(), bot.user.name, discord.__version__))
+    print("###\n[{}]: k. running as {}, discord.py version {}\n###".format(getLogFormattedTime(), bot.user.name, discord.__version__))
 
     await bot.change_presence(game=discord.Game(name="!sauce || !google", url=None, type=0), status=None, afk=False)
 
