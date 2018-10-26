@@ -157,29 +157,27 @@ async def react_cycle(message):
     await bot.add_reaction(message, '♻')
 
 # restart command
+@commands.has_permissions(administrator=True)
 @bot.command(aliases = ['reload'], pass_context = True)
 async def restart(ctx):
     global current_path
 
-    if ctx.message.author.id == admin_id:
-        # log the use of restart command
-        print("\n{}: Rebooting due to restart command.\n".format(getLogFormattedTime()))
+    # log the use of restart command
+    print("\n{}: Rebooting due to restart command.\n".format(getLogFormattedTime()))
 
-        # signal that bot is rebooting
-        await react_cycle(ctx.message)
+    # signal that bot is rebooting
+    await react_cycle(ctx.message)
 
-        # save the message
-        file = open(current_path + "/restart_msg.pkl", "wb")
-        pickle.dump(ctx.message, file, 4)
-        file.close()
+    # save the message
+    file = open(current_path + "/restart_msg.pkl", "wb")
+    pickle.dump(ctx.message, file, 4)
+    file.close()
 
-        # properly shut down
-        await bot.logout()
-        # restart
-        os.execl(os.path.abspath(__file__), "")
-    else:
-        await react_cross(ctx.message)
-        await bot.send_message(ctx.message.channel, "You do not have permissions to restart the bot!")
+    # properly shut down
+    await bot.logout()
+
+    # restart
+    os.execl(os.path.abspath(__file__), "")
 
 # bot status
 @bot.command(pass_context = True)
