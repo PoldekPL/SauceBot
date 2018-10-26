@@ -12,6 +12,7 @@ import os.path
 import subprocess
 import functools
 import re
+import pickle
 from urllib import parse
 
 # CONSTANTS
@@ -163,13 +164,15 @@ async def restart(ctx):
     if ctx.message.author.id == admin_id:
         # log the use of restart command
         print("\n{}: Rebooting due to restart command.\n".format(getLogFormattedTime()))
+
+        # signal that bot is rebooting
         await react_cycle(ctx.message)
-        # save the id of the message to tick after reboot
-        f = open(current_path + "/restart_msg_id", "w+")
-        f.write(ctx.message.id)
-        f.write(" ")
-        f.write(ctx.message.channel.id)
-        f.close()
+
+        # save the message
+        file = open(current_path + "/restart_msg.pkl", "wb")
+        pickle.dump(ctx.message, file, 4)
+        file.close()
+
         # properly shut down
         await bot.logout()
         # restart
@@ -330,21 +333,12 @@ async def on_ready():
     await bot.change_presence(game=discord.Game(name="!sauce || !google", url=None, type=0), status=None, afk=False)
 
     # if the bot bot was restarted with a restart message, tick it after the restart
-    if os.path.exists(current_path + "/restart_msg_id"):
-        f = open(current_path + "/restart_msg_id", "r")
-        msg_id_str = f.read()
-        f.close()
-
-        msg_id_contents = msg_id_str.split(' ')
-        msg_id = msg_id_contents[0]
-        msg_channel_id = msg_id_contents[1]
-        msg_channel = discord.utils.get(list(bot.servers)[0].channels, id=msg_channel_id)
-
-        restart_msg = await bot.get_message(msg_channel, msg_id)
-        await bot.remove_reaction(restart_msg, '♻', bot.user)
-        await react_tick(restart_msg)
-
-        os.remove(current_path + "/restart_msg_id")
+    if os.path.exists(current_path + "/restart_msg.pkl"):
+        file = open(current_path + "/restart_msg.pkl", "rb")
+        r_msg = pickle.load(file)
+        await bot.remove_reaction(r_msg, '♻', bot.user)
+        await react_tick(r_msg)
+        os.remove(current_path + "/restart_msg.pkl")
 
 def restartHandler():
     # test for internet connection before restarting the bot
