@@ -17,10 +17,6 @@ from urllib import parse
 
 # CONSTANTS
 current_path = sys.path[0]
-# channel ids
-
-# user ids
-admin_id =""
 
 # GLOBAL VARIABLES
 token_str = ""              # bot login token
@@ -39,20 +35,15 @@ def loadfiles():
     token_str = file.read()
     file.close()
 
-    global admin_id
-    file2 = open(current_path + "/my_id", "r")
-    admin_id = file2.read()
+    global sauce_help
+    file2 = open(current_path + "/sauce_help", "r")
+    sauce_help = file2.read()
     file2.close()
 
-    global sauce_help
-    file3 = open(current_path + "/sauce_help", "r")
-    sauce_help = file3.read()
-    file3.close()
-
     global google_help
-    file4 = open(current_path + "/google_help", "r")
-    google_help = file4.read()
-    file4.close()
+    file3 = open(current_path + "/google_help", "r")
+    google_help = file3.read()
+    file3.close()
 
     return
 
@@ -192,13 +183,11 @@ async def status(ctx):
     await bot.send_message(ctx.message.channel, embed = status_embed)
 
 # reload files
+@commands.has_permissions(administrator=True)
 @bot.command(aliases = ["loadfiles"], pass_context = True)
 async def reloadfiles(ctx):
-    if ctx.message.author.id == admin_id:
-        loadfiles()
-        await react_tick(ctx.message)
-    else:
-        await bot.send_message(ctx.message.channel, "You do not have permissions to do that!")
+    loadfiles()
+    await react_tick(ctx.message)
 
 # SauceNAO
 @bot.command(pass_context = True, aliases = ["s"])
