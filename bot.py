@@ -83,13 +83,13 @@ async def commonFunction(ctx: discord.ext.commands.Context, text: str, command: 
 
     if command == "sauce":
         help_str = sauce_help
-        link_first_half = "https://saucenao.com/search.php?url="
+        link_first_half = "SauceNAO: https://saucenao.com/search.php?url="
     elif command == "google":
         help_str = google_help
-        link_first_half = "https://www.google.com/searchbyimage?&image_url="
+        link_first_half = "Google: https://www.google.com/searchbyimage?&image_url="
     elif command == "tineye":
         help_str = None
-        link_first_half = "https://www.tineye.com/search?url="
+        link_first_half = "TinEye: https://www.tineye.com/search?url="
 
     # analyze the message to decide what's the user's intent
     result = analyzeCommand(ctx.message, text)
