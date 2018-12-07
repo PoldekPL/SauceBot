@@ -210,9 +210,17 @@ async def batch(ctx, *, text: str = None):
     global batch_users_google
     global batch_users_sauce
 
+    temp_embed = discord.Embed(description = "Preparing batch mode for you...")
+    msg_sent = await bot.send_message(ctx.message.channel, embed = temp_embed)
+    await bot.add_reaction(msg_sent, '🇸')
+    await bot.add_reaction(msg_sent, '🇬')
+    # await bot.add_reaction(msg_sent, '🇹')
+    await bot.add_reaction(msg_sent, '✅')
+    await bot.add_reaction(msg_sent, '🛑')
+
     loop = True
     while(loop):
-        # show embed with current state of batch mode for user using the command
+        # embed with current state of batch mode for user using the command
         batch_embed = discord.Embed(title = "Batch mode", colour = 0xb29a80)
 
         batch_embed.add_field(name = "What is batch mode", value = "Batch mode allows you to find sources for large quantities of pictures. When enabled for at least one service, every time you send a message with attached picture(s), in response you will reveive link(s) that allow you to check with just one click if the source is known. Remember, in batch mode only *pictures attached* will be checked, not any links in messages.")
@@ -231,19 +239,12 @@ async def batch(ctx, *, text: str = None):
             embed_content += ":x: Google"
 
         batch_embed.add_field(name = "Enabled reverse search engines for {}:".format(ctx.message.author.name), value = embed_content)
-        msg_sent = await bot.send_message(ctx.message.channel, embed = batch_embed)
-
-        await bot.add_reaction(msg_sent, '🇸')
-        await bot.add_reaction(msg_sent, '🇬')
-        # await bot.add_reaction(msg_sent, '🇹')
-        await bot.add_reaction(msg_sent, '✅')
-        await bot.add_reaction(msg_sent, '🛑')
+        msg_sent = await bot.edit_message(msg_sent, embed = batch_embed)
 
         def check(reaction : discord.Reaction, user : discord.Member):
             return user == ctx.message.author
         res = await bot.wait_for_reaction(message=msg_sent, check = check)
-
-        await bot.delete_message(msg_sent)
+        await bot.remove_reaction(msg_sent, res.reaction.emoji, ctx.message.author)
 
         if(res.reaction.emoji == '🇸'):     # toggle saucenao
             if ctx.message.author.id not in batch_users_sauce:
@@ -260,6 +261,7 @@ async def batch(ctx, *, text: str = None):
         # if(res.reaction.emoji == '🇹'):     # toggle tineye
 
         if(res.reaction.emoji == '✅'):
+            await bot.delete_message(msg_sent)
             await bot.send_message(ctx.message.channel, ":white_check_mark: Your settings have been saved.")
             loop = False
 
@@ -270,6 +272,7 @@ async def batch(ctx, *, text: str = None):
             if ctx.message.author.id in batch_users_google:
                 batch_users_google.remove(ctx.message.author.id)
 
+            await bot.delete_message(msg_sent)
             await bot.send_message(ctx.message.channel, ":stop_sign: You have stopped batch mode. All services have been disabled.")
             loop = False
 
