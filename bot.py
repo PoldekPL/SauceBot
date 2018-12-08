@@ -23,8 +23,7 @@ token_str = ""              # bot login token
 sauce_help = ""             # help message for using SauceNAO
 google_help = ""            # help message for Googling
 
-batch_users_sauce = []      # list of users currently in sauce batch mode
-batch_users_google = []     # list of users currently in google batch mode
+batch_data = {}             # batch mode data about who, where and what services
 
 # function to load files
 def loadfiles():
@@ -207,16 +206,20 @@ async def tineye(ctx, *, text: str = None):
 # batch mode
 @bot.command(pass_context = True, aliases = ["b"])
 async def batch(ctx, *, text: str = None):
-    global batch_users_google
-    global batch_users_sauce
+    global batch_data
 
     temp_embed = discord.Embed(description = "Preparing batch mode for you...")
     msg_sent = await bot.send_message(ctx.message.channel, embed = temp_embed)
     await bot.add_reaction(msg_sent, '🇸')
     await bot.add_reaction(msg_sent, '🇬')
-    # await bot.add_reaction(msg_sent, '🇹')
+    await bot.add_reaction(msg_sent, '🇹')
     await bot.add_reaction(msg_sent, '✅')
     await bot.add_reaction(msg_sent, '🛑')
+
+    if batch_data.get((ctx.message.author.id, ctx.message.channel.id), None) == None:
+        batch_data[(ctx.message.author.id, ctx.message.channel.id)] = set()
+
+    services = batch_data.get((ctx.message.author.id, ctx.message.channel.id))
 
     loop = True
     while(loop):
@@ -228,37 +231,46 @@ async def batch(ctx, *, text: str = None):
         batch_embed.add_field(name = "How to control batch mode", value = "Toggle single services with appropriate reactions. To confirm what you set, use :white_check_mark:. To disable them all and stop batch mode, use :stop_sign:")
 
         embed_content = ""
-        if(ctx.message.author.id in batch_users_sauce):
+        if "s" in services:
             embed_content += ":white_check_mark: SauceNAO\n"
         else:
             embed_content += ":x: SauceNAO\n"
 
-        if(ctx.message.author.id in batch_users_google):
-            embed_content += ":white_check_mark: Google"
+        if "g" in services:
+            embed_content += ":white_check_mark: Google\n"
         else:
-            embed_content += ":x: Google"
+            embed_content += ":x: Google\n"
+
+        if "t" in services:
+            embed_content += ":white_check_mark: TinEye"
+        else:
+            embed_content += ":x: TinEye"
 
         batch_embed.add_field(name = "Enabled reverse search engines for {}:".format(ctx.message.author.name), value = embed_content)
         msg_sent = await bot.edit_message(msg_sent, embed = batch_embed)
 
-        def check(reaction : discord.Reaction, user : discord.Member):
+        def check(reaction: discord.Reaction, user: discord.Member):
             return user == ctx.message.author
         res = await bot.wait_for_reaction(message=msg_sent, check = check)
         await bot.remove_reaction(msg_sent, res.reaction.emoji, ctx.message.author)
 
         if(res.reaction.emoji == '🇸'):     # toggle saucenao
-            if ctx.message.author.id not in batch_users_sauce:
-                batch_users_sauce.append(ctx.message.author.id)
+            if "s" in services:
+                services.discard("s")
             else:
-                batch_users_sauce.remove(ctx.message.author.id)
+                services.add("s")
 
         if(res.reaction.emoji == '🇬'):     # toggle google
-            if ctx.message.author.id not in batch_users_google:
-                batch_users_google.append(ctx.message.author.id)
+            if "g" in services:
+                services.discard("g")
             else:
-                batch_users_google.remove(ctx.message.author.id)
+                services.add("g")
 
-        # if(res.reaction.emoji == '🇹'):     # toggle tineye
+        if(res.reaction.emoji == '🇹'):     # toggle tineye
+            if "t" in services:
+                services.discard("t")
+            else:
+                services.add("t")
 
         if(res.reaction.emoji == '✅'):
             await bot.delete_message(msg_sent)
@@ -266,11 +278,8 @@ async def batch(ctx, *, text: str = None):
             loop = False
 
         if(res.reaction.emoji == '🛑'):
-            # remove user id from all lists
-            if ctx.message.author.id in batch_users_sauce:
-                batch_users_sauce.remove(ctx.message.author.id)
-            if ctx.message.author.id in batch_users_google:
-                batch_users_google.remove(ctx.message.author.id)
+            # disable all services
+            services.clear()
 
             await bot.delete_message(msg_sent)
             await bot.send_message(ctx.message.channel, ":stop_sign: You have stopped batch mode. All services have been disabled.")
@@ -279,8 +288,7 @@ async def batch(ctx, *, text: str = None):
 # universal on_message function
 @bot.event
 async def on_message(message: discord.Message):
-    global batch_users_sauce
-    global batch_users_google
+    global batch_data
 
     if message.author == bot.user:
         return      # don't reply to yourself
@@ -290,18 +298,23 @@ async def on_message(message: discord.Message):
         await bot.process_commands(message)
         return
 
-    # if given user has sauce batch mode enabled
-    if message.author.id in batch_users_google or message.author.id in batch_users_sauce:
-        urls = getAttachmentURLs(message)
-        if len(urls) > 0:
-            if message.author.id in batch_users_sauce:
-                for u in urls:
-                    await bot.send_message(message.channel, "SauceNAO: https://saucenao.com/search.php?url={}".format(parse.quote_plus(u)))
-            if message.author.id in batch_users_google:
-                for u in urls:
-                    await bot.send_message(message.channel, "Google: https://www.google.com/searchbyimage?&image_url={}".format(parse.quote_plus(u)))
-        else:
-            await bot.send_message(message.channel, "{}, you're in batch mode. If you want to disable it, use `!batch`!".format(message.author.mention))
+    # if given user has batch mode enabled for given channel
+    services = batch_data.get((message.author.id, message.channel.id), None)
+    if services != None:
+        if len(services) > 0:
+            urls = getAttachmentURLs(message)
+            if len(urls) > 0:
+                if "s" in services:
+                    for u in urls:
+                        await bot.send_message(message.channel, "SauceNAO: https://saucenao.com/search.php?url={}".format(parse.quote_plus(u)))
+                if "g" in services:
+                    for u in urls:
+                        await bot.send_message(message.channel, "Google: https://www.google.com/searchbyimage?&image_url={}".format(parse.quote_plus(u)))
+                if "t" in services:
+                    for u in urls:
+                        await bot.send_message(message.channel, "TinEye: https://www.tineye.com/search?url={}".format(parse.quote_plus(u)))
+            else:
+                await bot.send_message(message.channel, "{}, you're in batch mode. If you want to disable it, use `!batch`!".format(message.author.mention))
 
     await bot.process_commands(message)
 
@@ -310,7 +323,7 @@ async def on_message(message: discord.Message):
 async def on_command_error(exception, ctx: discord.ext.commands.Context):
     # if user tried using an unknown command
     if type(exception) == discord.ext.commands.errors.CommandNotFound:
-        # do nothing, this bot literally has only a single command for users
+        # do nothing
         pass
 
 # what to do on successful boot
@@ -320,7 +333,7 @@ async def on_ready():
 
     print("###\n[{}]: k. running as {}, discord.py version {}\n###".format(getLogFormattedTime(), bot.user.name, discord.__version__))
 
-    await bot.change_presence(game=discord.Game(name="!sauce || !google", url=None, type=0), status=None, afk=False)
+    # await bot.change_presence(game=discord.Game(name="!sauce || !google", url=None, type=0), status=None, afk=False)
 
     # if the bot bot was restarted with a restart message, tick it after the restart
     if os.path.exists(current_path + "/restart_msg.pkl"):
