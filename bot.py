@@ -151,6 +151,7 @@ async def react_cycle(message):
 @bot.command(aliases = ['reload'], pass_context = True)
 async def restart(ctx):
     global current_path
+    global batch_data
 
     # log the use of restart command
     print("\n{}: Rebooting due to restart command.\n".format(getLogFormattedTime()))
@@ -161,6 +162,11 @@ async def restart(ctx):
     # save the message
     file = open(current_path + "/restart_msg.pkl", "wb")
     pickle.dump(ctx.message, file, 4)
+    file.close()
+
+    # save batch mode data
+    file = open(current_path + "/batch_data.pkl", "wb")
+    pickle.dump(batch_data, file, 4)
     file.close()
 
     # properly shut down
@@ -330,6 +336,7 @@ async def on_command_error(exception, ctx: discord.ext.commands.Context):
 @bot.event
 async def on_ready():
     global current_path
+    global batch_data
 
     print("###\n[{}]: k. running as {}, discord.py version {}\n###".format(getLogFormattedTime(), bot.user.name, discord.__version__))
 
@@ -339,9 +346,16 @@ async def on_ready():
     if os.path.exists(current_path + "/restart_msg.pkl"):
         file = open(current_path + "/restart_msg.pkl", "rb")
         r_msg = pickle.load(file)
+        file.close()
         await bot.remove_reaction(r_msg, '♻', bot.user)
         await react_tick(r_msg)
         os.remove(current_path + "/restart_msg.pkl")
+
+    if os.path.exists(current_path + "/batch_data.pkl"):
+        file = open(current_path + "/batch_data.pkl", "rb")
+        batch_data = pickle.load(file)
+        file.close()
+        os.remove(current_path + "/batch_data.pkl")
 
 def restartHandler():
     # test for internet connection before restarting the bot
@@ -356,4 +370,8 @@ try:
     bot.run(token_str)
 except:
     # in case of any error, restart the bot
+    file = open(current_path + "/batch_data.pkl", "wb")
+    pickle.dump(batch_data, file, 4)
+    file.close()
+
     restartHandler()
