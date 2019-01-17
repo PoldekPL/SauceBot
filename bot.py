@@ -90,8 +90,22 @@ def getLogFormattedTime():
 
 # function to return a string with all available search engines used
 def allSources(url: str):
-    #HACK Yandex "&rpt=imageview"
-    return "{1}{0}\n{2}{0}\n{3}{0}\n{4}{0}\n{5}{0}&rpt=imageview".format(url, sauce_first_half, google_first_half, tineye_first_half, iqdb_first_half, yandex_first_half)
+    return "{}\n{}\n{}\n{}\n{}".format(sauceLink(url), googleLink(url), tineyeLink(url), iqdbLink(url), yandexLink(url))
+
+def sauceLink(url: str):
+    return "SauceNAO: https://saucenao.com/search.php?url={}".format(parse.quote_plus(url))
+
+def googleLink(url: str):
+    return "Google: https://www.google.com/searchbyimage?&image_url={}".format(parse.quote_plus(url))
+
+def tineyeLink(url: str):
+    return "TinEye: https://www.tineye.com/search?url={}".format(parse.quote_plus(url))
+
+def iqdbLink(url: str):
+    return "IQDB: https://iqdb.org/?url={}".format(parse.quote_plus(url))
+
+def yandexLink(url: str):
+    return "Yandex: https://yandex.com/images/search?url={}&rpt=imageview".format(parse.quote_plus(url))
 
 # function to ensure proper restart of the bot in case of irrecoverable error
 def restartHandler():
@@ -173,10 +187,10 @@ async def sauce(ctx, *, text: str = None):
         urls = getAttachmentURLs(ctx.message)
         # iterate over urls and create percent encoded links with them
         for u in urls:
-            await bot.send_message(ctx.message.channel, allSources(parse.quote_plus(u)))
+            await bot.send_message(ctx.message.channel, allSources(u))
 
     elif result == "link":
-        await bot.send_message(ctx.message.channel, allSources(parse.quote_plus(text)))
+        await bot.send_message(ctx.message.channel, allSources(text))
 
     elif result == "discord link":
         # so that was a message permalink, now extract server, channel and message ids
@@ -189,7 +203,7 @@ async def sauce(ctx, *, text: str = None):
         if len(urls) > 0:
             # iterate over attached files and create links with their urls
             for u in urls:
-                await bot.send_message(ctx.message.channel, allSources(parse.quote_plus(u)))
+                await bot.send_message(ctx.message.channel, allSources(u))
         else:
             await bot.send_message(ctx.message.channel, "Linked message does not have attached pictures.")
 
