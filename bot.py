@@ -30,6 +30,7 @@ sauce_help = ""             # help message
 
 batch_data = {}             # batch mode data about who, where and what services
 
+# FUNCTIONS
 # function to load files
 def loadfiles():
     global current_path
@@ -46,6 +47,7 @@ def loadfiles():
 
     return
 
+# function to ananlyze the command given by the user
 def analyzeCommand(message: discord.Message, contents: str):
     #NOTE: I know that using strings as return values is rather lazy, but it's not meant to be a *high performance* bot
 
@@ -69,6 +71,7 @@ def analyzeCommand(message: discord.Message, contents: str):
         else:
             return "link"
 
+# function to extract urls of attachments from message
 def getAttachmentURLs(message: discord.Message):
     urls = []
 
@@ -85,12 +88,29 @@ def getLogFormattedTime():
 
     return formatted_time
 
+# function to return a string with all available search engines used
+def allSources(url: str):
+    #HACK Yandex "&rpt=imageview"
+    return "{1}{0}\n{2}{0}\n{3}{0}\n{4}{0}\n{5}{0}&rpt=imageview".format(url, sauce_first_half, google_first_half, tineye_first_half, iqdb_first_half, yandex_first_half)
+
+# function to ensure proper restart of the bot in case of irrecoverable error
+def restartHandler():
+    # test for internet connection before restarting the bot
+    # for good measure, test two different IP addresses
+    while subprocess.run(args = ['ping', '-c', '1', '8.8.8.8'], stdout = subprocess.DEVNULL).returncode != 0 and subprocess.run(args = ['ping', '-c', '1', '1.1.1.1'], stdout = subprocess.DEVNULL).returncode != 0:
+        time.sleep(3)
+
+    print("[{}]: Had to restart with restartHandler".format(getLogFormattedTime()))
+    os.execl(os.path.abspath(__file__), "")
+
+# BOT
 bot = commands.Bot(command_prefix = '!')
 bot.remove_command("help")
 
 # load files
 loadfiles()
 
+# COMMANDS
 # restart command
 @commands.has_permissions(administrator=True)
 @bot.command(aliases = ['reload'], pass_context = True)
@@ -139,7 +159,7 @@ async def reloadfiles(ctx):
     loadfiles()
     await bot.add_reaction(ctx.message, '✅')
 
-# SauceNAO
+# main sauce command
 @bot.command(pass_context = True, aliases = ["s"])
 async def sauce(ctx, *, text: str = None):
     # analyze the message to decide what's the user's intent
@@ -174,10 +194,6 @@ async def sauce(ctx, *, text: str = None):
             await bot.send_message(ctx.message.channel, "Linked message does not have attached pictures.")
 
     return
-
-def allSources(url: str):
-    #HACK Yandex "&rpt=imageview"
-    return "{1}{0}\n{2}{0}\n{3}{0}\n{4}{0}\n{5}{0}&rpt=imageview".format(url, sauce_first_half, google_first_half, tineye_first_half, iqdb_first_half, yandex_first_half)
 
 # batch mode
 @bot.command(pass_context = True, aliases = ["b"])
@@ -338,15 +354,6 @@ async def on_ready():
         batch_data = pickle.load(file)
         file.close()
         os.remove(current_path + "/batch_data.pkl")
-
-def restartHandler():
-    # test for internet connection before restarting the bot
-    # for good measure, test two different IP addresses
-    while subprocess.run(args = ['ping', '-c', '1', '8.8.8.8'], stdout = subprocess.DEVNULL).returncode != 0 and subprocess.run(args = ['ping', '-c', '1', '1.1.1.1'], stdout = subprocess.DEVNULL).returncode != 0:
-        time.sleep(3)
-
-    print("[{}]: Had to restart with restartHandler".format(getLogFormattedTime()))
-    os.execl(os.path.abspath(__file__), "")
 
 try:
     bot.run(token_str)
