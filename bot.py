@@ -18,12 +18,6 @@ from urllib import parse
 # CONSTANTS
 current_path = sys.path[0]
 
-sauce_first_half = "SauceNAO: https://saucenao.com/search.php?url="
-google_first_half = "Google: https://www.google.com/searchbyimage?&image_url="
-tineye_first_half = "TinEye: https://www.tineye.com/search?url="
-iqdb_first_half = "IQDB: https://iqdb.org/?url="
-yandex_first_half = "Yandex: https://yandex.com/images/search?url="
-
 # GLOBAL VARIABLES
 token_str = ""              # bot login token
 sauce_help = ""             # help message
@@ -220,6 +214,7 @@ async def batch(ctx, *, text: str = None):
     await bot.add_reaction(msg_sent, '🇬')
     await bot.add_reaction(msg_sent, '🇹')
     await bot.add_reaction(msg_sent, 'ℹ')
+    await bot.add_reaction(msg_sent, '🇾')
     await bot.add_reaction(msg_sent, '✅')
     await bot.add_reaction(msg_sent, '🛑')
 
@@ -254,9 +249,14 @@ async def batch(ctx, *, text: str = None):
             embed_content += ":x: TinEye\n"
 
         if "i" in services:
-            embed_content += ":white_check_mark: IQDB"
+            embed_content += ":white_check_mark: IQDB\n"
         else:
-            embed_content += ":x: IQDB"
+            embed_content += ":x: IQDB\n"
+
+        if "y" in services:
+            embed_content += ":white_check_mark: Yandex"
+        else:
+            embed_content += ":x: Yandex"
 
         batch_embed.add_field(name = "Enabled reverse search engines for {}:".format(ctx.message.author.name), value = embed_content)
         msg_sent = await bot.edit_message(msg_sent, embed = batch_embed)
@@ -289,6 +289,12 @@ async def batch(ctx, *, text: str = None):
                 services.discard("i")
             else:
                 services.add("i")
+
+        if(res.reaction.emoji == '🇾'):      # toggle yandex
+            if "y" in services:
+                services.discard("y")
+            else:
+                services.add("y")
 
         if(res.reaction.emoji == '✅'):
             await bot.delete_message(msg_sent)
@@ -323,14 +329,18 @@ async def on_message(message: discord.Message):
             urls = getAttachmentURLs(message)
             if len(urls) > 0:
                 for u in urls:
+                    response = ""
                     if "s" in services:
-                        await bot.send_message(message.channel, "SauceNAO: https://saucenao.com/search.php?url={}".format(parse.quote_plus(u)))
+                        response += sauceLink(u) + '\n'
                     if "g" in services:
-                        await bot.send_message(message.channel, "Google: https://www.google.com/searchbyimage?&image_url={}".format(parse.quote_plus(u)))
+                        response += googleLink(u) + '\n'
                     if "t" in services:
-                        await bot.send_message(message.channel, "TinEye: https://www.tineye.com/search?url={}".format(parse.quote_plus(u)))
+                        response += tineyeLink(u) + '\n'
                     if "i" in services:
-                        await bot.send_message(message.channel, "IQDB: https://iqdb.org/?url={}".format(parse.quote_plus(u)))
+                        response += iqdbLink(u) + '\n'
+                    if "y" in services:
+                        response += yandexLink(u)
+                    await bot.send_message(message.channel, response)
             else:
                 await bot.send_message(message.channel, "{}, you're in batch mode in this channel. If you want to disable it, use `!batch`!".format(message.author.mention))
 
