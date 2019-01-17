@@ -91,16 +91,6 @@ bot.remove_command("help")
 # load files
 loadfiles()
 
-# helper functions to react to messages
-async def react_tick(message):
-    await bot.add_reaction(message, '✅')
-
-async def react_cross(message):
-    await bot.add_reaction(message, '❌')
-
-async def react_cycle(message):
-    await bot.add_reaction(message, '♻')
-
 # restart command
 @commands.has_permissions(administrator=True)
 @bot.command(aliases = ['reload'], pass_context = True)
@@ -112,7 +102,7 @@ async def restart(ctx):
     print("\n{}: Rebooting due to restart command.\n".format(getLogFormattedTime()))
 
     # signal that bot is rebooting
-    await react_cycle(ctx.message)
+    await bot.add_reaction(ctx.message, '♻')
 
     # save the message
     file = open(current_path + "/restart_msg.pkl", "wb")
@@ -147,7 +137,7 @@ async def status(ctx):
 @bot.command(aliases = ["loadfiles"], pass_context = True)
 async def reloadfiles(ctx):
     loadfiles()
-    await react_tick(ctx.message)
+    await bot.add_reaction(ctx.message, '✅')
 
 # SauceNAO
 @bot.command(pass_context = True, aliases = ["s"])
@@ -340,7 +330,7 @@ async def on_ready():
         r_msg = pickle.load(file)
         file.close()
         await bot.remove_reaction(r_msg, '♻', bot.user)
-        await react_tick(r_msg)
+        await bot.add_reaction(r_msg, '✅')
         os.remove(current_path + "/restart_msg.pkl")
 
     if os.path.exists(current_path + "/batch_data.pkl"):
