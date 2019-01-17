@@ -18,10 +18,15 @@ from urllib import parse
 # CONSTANTS
 current_path = sys.path[0]
 
+sauce_first_half = "SauceNAO: https://saucenao.com/search.php?url="
+google_first_half = "Google: https://www.google.com/searchbyimage?&image_url="
+tineye_first_half = "TinEye: https://www.tineye.com/search?url="
+iqdb_first_half = "IQDB: https://iqdb.org/?url="
+yandex_first_half = "Yandex: https://yandex.com/images/search?url="
+
 # GLOBAL VARIABLES
 token_str = ""              # bot login token
-sauce_help = ""             # help message for using SauceNAO
-google_help = ""            # help message for Googling
+sauce_help = ""             # help message
 
 batch_data = {}             # batch mode data about who, where and what services
 
@@ -39,11 +44,6 @@ def loadfiles():
     sauce_help = file2.read()
     file2.close()
 
-    global google_help
-    file3 = open(current_path + "/google_help", "r")
-    google_help = file3.read()
-    file3.close()
-
     return
 
 def analyzeCommand(message: discord.Message, contents: str):
@@ -59,6 +59,9 @@ def analyzeCommand(message: discord.Message, contents: str):
             return None
     else:
         # message body after command is non-empty
+        # did usex expicitly ask for help?
+        if contents == "help":
+            return "help"
         # detect if that's a valid discord message permalink
         if re.fullmatch(r"https://discordapp\.com/channels/\d+/\d+/\d+", contents, re.I) != None:
             return "discord link"
@@ -74,54 +77,6 @@ def getAttachmentURLs(message: discord.Message):
         urls.append(a['url'])
 
     return urls
-
-# function name may not be creative, but it is true
-async def commonFunction(ctx: discord.ext.commands.Context, text: str, command: str):
-    global sauce_help
-    global google_help
-
-    if command == "sauce":
-        help_str = sauce_help
-        link_first_half = "SauceNAO: https://saucenao.com/search.php?url="
-    elif command == "google":
-        help_str = google_help
-        link_first_half = "Google: https://www.google.com/searchbyimage?&image_url="
-    elif command == "tineye":
-        help_str = None
-        link_first_half = "TinEye: https://www.tineye.com/search?url="
-
-    # analyze the message to decide what's the user's intent
-    result = analyzeCommand(ctx.message, text)
-
-    if result == None:
-        await bot.send_message(ctx.message.channel, help_str)
-
-    elif result == "file":
-        # get urls of attached file(s)
-        urls = getAttachmentURLs(ctx.message)
-        # iterate over urls and create percent encoded links with them
-        for u in urls:
-            await bot.send_message(ctx.message.channel, "{}{}".format(link_first_half, parse.quote_plus(u)))
-
-    elif result == "link":
-        await bot.send_message(ctx.message.channel, "{}{}".format(link_first_half, parse.quote_plus(text)))
-
-    elif result == "discord link":
-        # so that was a message permalink, now extract server, channel and message ids
-        ids = re.findall(r"\d+", text, re.I)
-        # fetch linked message
-        linked_message = await bot.get_message(discord.Object(ids[1]), ids[2])
-        # get url(s) of file(s) attached to linked message
-        urls = getAttachmentURLs(linked_message)
-        # if linked message had file(s) attached
-        if len(urls) > 0:
-            # iterate over attached files and create links with their urls
-            for u in urls:
-                await bot.send_message(ctx.message.channel, "{}{}".format(link_first_half, parse.quote_plus(u)))
-        else:
-            await bot.send_message(ctx.message.channel, "Linked message does not have attached pictures.")
-
-    return
 
 # helper function for getting formatted time for log
 def getLogFormattedTime():
@@ -180,10 +135,10 @@ async def restart(ctx):
 async def status(ctx):
     pver = sys.version_info
     
-    status_embed = discord.Embed(title = "Ready.", colour = 0x3c4b72)
+    status_embed = discord.Embed(title = "Ready.")
     status_embed.set_thumbnail(url = bot.user.avatar_url)
     status_embed.add_field(name = "discord.py version", value = "%s, running under Python %d.%d.%d" % (discord.__version__, pver[0], pver[1], pver[2]))
-    status_embed.set_footer(text = "To read about how to use the SauceBot, use !sauce or !google")
+    status_embed.set_footer(text = "To read about how to use the SauceBot, use `!sauce` or `!sauce help`")
 
     await bot.send_message(ctx.message.channel, embed = status_embed)
 
@@ -197,17 +152,42 @@ async def reloadfiles(ctx):
 # SauceNAO
 @bot.command(pass_context = True, aliases = ["s"])
 async def sauce(ctx, *, text: str = None):
-    await commonFunction(ctx, text, "sauce")
+    # analyze the message to decide what's the user's intent
+    result = analyzeCommand(ctx.message, text)
 
-# Google Reverse Image Search
-@bot.command(pass_context = True, aliases = ["g"])
-async def google(ctx, *, text: str = None):
-    await commonFunction(ctx, text, "google")
+    if result == None or result == "help":
+        await bot.send_message(ctx.message.channel, sauce_help)
 
-# TinEye
-@bot.command(pass_context = True, aliases = ["t"])
-async def tineye(ctx, *, text: str = None):
-    await commonFunction(ctx, text, "tineye")
+    elif result == "file":
+        # get urls of attached file(s)
+        urls = getAttachmentURLs(ctx.message)
+        # iterate over urls and create percent encoded links with them
+        for u in urls:
+            await bot.send_message(ctx.message.channel, allSources(parse.quote_plus(u)))
+
+    elif result == "link":
+        await bot.send_message(ctx.message.channel, allSources(parse.quote_plus(text)))
+
+    elif result == "discord link":
+        # so that was a message permalink, now extract server, channel and message ids
+        ids = re.findall(r"\d+", text, re.I)
+        # fetch linked message
+        linked_message = await bot.get_message(discord.Object(ids[1]), ids[2])
+        # get url(s) of file(s) attached to linked message
+        urls = getAttachmentURLs(linked_message)
+        # if linked message had file(s) attached
+        if len(urls) > 0:
+            # iterate over attached files and create links with their urls
+            for u in urls:
+                await bot.send_message(ctx.message.channel, allSources(parse.quote_plus(u)))
+        else:
+            await bot.send_message(ctx.message.channel, "Linked message does not have attached pictures.")
+
+    return
+
+def allSources(url: str):
+    #HACK Yandex "&rpt=imageview"
+    return "{1}{0}\n{2}{0}\n{3}{0}\n{4}{0}\n{5}{0}&rpt=imageview".format(url, sauce_first_half, google_first_half, tineye_first_half, iqdb_first_half, yandex_first_half)
 
 # batch mode
 @bot.command(pass_context = True, aliases = ["b"])
@@ -219,6 +199,7 @@ async def batch(ctx, *, text: str = None):
     await bot.add_reaction(msg_sent, '🇸')
     await bot.add_reaction(msg_sent, '🇬')
     await bot.add_reaction(msg_sent, '🇹')
+    await bot.add_reaction(msg_sent, 'ℹ')
     await bot.add_reaction(msg_sent, '✅')
     await bot.add_reaction(msg_sent, '🛑')
 
@@ -248,9 +229,14 @@ async def batch(ctx, *, text: str = None):
             embed_content += ":x: Google\n"
 
         if "t" in services:
-            embed_content += ":white_check_mark: TinEye"
+            embed_content += ":white_check_mark: TinEye\n"
         else:
-            embed_content += ":x: TinEye"
+            embed_content += ":x: TinEye\n"
+
+        if "i" in services:
+            embed_content += ":white_check_mark: IQDB"
+        else:
+            embed_content += ":x: IQDB"
 
         batch_embed.add_field(name = "Enabled reverse search engines for {}:".format(ctx.message.author.name), value = embed_content)
         msg_sent = await bot.edit_message(msg_sent, embed = batch_embed)
@@ -277,6 +263,12 @@ async def batch(ctx, *, text: str = None):
                 services.discard("t")
             else:
                 services.add("t")
+
+        if(res.reaction.emoji == 'ℹ'):      # toggle iqdb
+            if "i" in services:
+                services.discard("i")
+            else:
+                services.add("i")
 
         if(res.reaction.emoji == '✅'):
             await bot.delete_message(msg_sent)
@@ -310,17 +302,17 @@ async def on_message(message: discord.Message):
         if len(services) > 0:
             urls = getAttachmentURLs(message)
             if len(urls) > 0:
-                if "s" in services:
-                    for u in urls:
+                for u in urls:
+                    if "s" in services:
                         await bot.send_message(message.channel, "SauceNAO: https://saucenao.com/search.php?url={}".format(parse.quote_plus(u)))
-                if "g" in services:
-                    for u in urls:
+                    if "g" in services:
                         await bot.send_message(message.channel, "Google: https://www.google.com/searchbyimage?&image_url={}".format(parse.quote_plus(u)))
-                if "t" in services:
-                    for u in urls:
+                    if "t" in services:
                         await bot.send_message(message.channel, "TinEye: https://www.tineye.com/search?url={}".format(parse.quote_plus(u)))
+                    if "i" in services:
+                        await bot.send_message(message.channel, "IQDB: https://iqdb.org/?url={}".format(parse.quote_plus(u)))
             else:
-                await bot.send_message(message.channel, "{}, you're in batch mode. If you want to disable it, use `!batch`!".format(message.author.mention))
+                await bot.send_message(message.channel, "{}, you're in batch mode in this channel. If you want to disable it, use `!batch`!".format(message.author.mention))
 
     await bot.process_commands(message)
 
@@ -340,7 +332,7 @@ async def on_ready():
 
     print("###\n[{}]: k. running as {}, discord.py version {}\n###".format(getLogFormattedTime(), bot.user.name, discord.__version__))
 
-    # await bot.change_presence(game=discord.Game(name="!sauce || !google", url=None, type=0), status=None, afk=False)
+    await bot.change_presence(game=discord.Game(name="!sauce", url=None, type=0), status=None, afk=False)
 
     # if the bot bot was restarted with a restart message, tick it after the restart
     if os.path.exists(current_path + "/restart_msg.pkl"):
