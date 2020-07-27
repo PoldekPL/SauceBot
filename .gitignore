@@ -1,3 +1,5 @@
 token
 restart_msg.pkl
 batch_data.pkl
+/.vscode/
+/env/
