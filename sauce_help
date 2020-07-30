@@ -1,12 +1,36 @@
-There are multiple ways to use SauceBot:
+*For general information regarding SauceBot, send `sauce.info`.*
 
-**1. Attach a file.**
-To find sauce for a single file, attach it to a message saying `!sauce`. If you're on mobile, it is possible to send a message with multiple files attached, and they all will be sauced. On desktop, every file is a separate message, so you need to remember to type `!sauce` for each of them. Alternatively, check method **2.**
-**2. Batch mode.**
-For when you got a lot of picture you want to find the sources for, there is batch mode. Use `!batch` (shorthand `!b`) - it'll let you configure it - then just post pictures - for each message with picture you send, bot will return links that may lead to source. To end batch mode, use `!batch` again. Remember that it only works for pictures you send, not links.
-**3. Discord message permalink.**
-If you've got Developer Mode enabled (which is a good, non-intrusive thing to have enabled in general), every message will have in the little menu on the right an option to copy permalink to it. By sending a message saying `!sauce [message permalink]`, the linked message will be fetched and analyzed and all files attached to it will be sauced.
-**4. Picture permalink**
-Lastly, you can just use any link that leads to a picture, by typing `!sauce [link]`. As SauceBot will just attach the link you gave it to different search service links, it's your job to make sure that it's a valid picture link.
+**The command prefix for the bot is `sauce.`, shorthand `s.`** If you have a problem seeing bot's replies to your commands, make sure you have enabled **Link Preview** in *User Settings* > *Text & Images*.
 
-The shorthand for `!sauce` command is `!s`.
+SauceBot can create for you links that lead to different reverse search engines. All you need to do is provide image(s) for bot to work on. **SauceBot does not work on videos, because the search engines do not work on videos.** If you want to find the source for a video, usually your best bet is making a screenshot of the first frames of it, and then performing the search on that screenshot.
+
+$
+
+Currently working methods to obtain the sauce are:
+**1. Directly attached image(s)**
+Attach the image(s) to the message that invokes a command. If you're on mobile, one message can have multiple attachments and they will all be processed by the bot. On desktop, you need to call the appropriate command for every image you send.
+**2. Image link**
+In the same message call a command and follow it with a link to an image. It should be a valid, publicly accessible link to an image, otherwise search engines will fail fetching and processing the image.
+**3. Discord message permalink**
+Just like the image link, but use the link that leads to a Discord message. Bot will detect it, fetch the message you've linked to and process the files attached to it.
+
+$
+
+SauceBot can create links to following search engines:
+**• Google**
+Command: `sauce.google`, `sauce.g`
+You know Google, I know Google, almost every human on Earth knows Google. Very good results when searching for IRL stuff and generally "western" art. Image recognition and suggested search keywords range from surprisingly specific to comically bad.
+**• SauceNAO**
+Command: `sauce.saucenao`, `sauce.sauce`, `sauce.s`
+Yes, that's why the bot is called *Sauce*Bot. Specializes in various imageboards and some art sites.
+**• TinEye**
+Command: `sauce.tineye`, `sauce.t`
+TinEye's gimmick is figuring out if what you want to search has been cropped or rotated from an original picture. Other than that, result base is similar to Google.
+**• IQDB**
+Command: `sauce.iqdb`, `sauce.i`
+IQDB is similar to SauceNAO, but much more anime-centric.
+**• Yandex**
+Command: `sauce.yandex`, `sauce.y`
+Yandex is somewhat of a Russian Google. Often when Google fails, Yandex knows exactly what you're looking for. Image recognition is absolutely impeccable, to the point of being creepily accurate is suggesting similar images.
+
+To use all of them at once, use the command `sauce.all` (or `sauce.a`).
