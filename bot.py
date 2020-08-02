@@ -318,7 +318,7 @@ class SauceCommands(commands.Cog):
     async def status(self, ctx):
         pver = sys.version_info
         
-        status_embed = discord.Embed(title="Ready.")
+        status_embed = discord.Embed(title="Ready.", color=self.bot.embed_colors[ctx.guild.id])
         status_embed.set_thumbnail(url=self.bot.user.avatar_url)
         status_embed.add_field(name="discord.py version:", value="%s, running under Python %d.%d.%d" % (discord.__version__, pver[0], pver[1], pver[2]))
         status_embed.set_footer(text="To read about how to use the SauceBot, use sauce.help")
