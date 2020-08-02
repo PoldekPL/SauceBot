@@ -236,7 +236,7 @@ class SauceCommands(commands.Cog):
         index = 1
         # iterate over attachments and provide search links for them
         for u in urls:
-            embed = discord.Embed(color = self.bot.embed_colors[ctx.guild.id])
+            embed = discord.Embed(color=self.bot.embed_colors[ctx.guild.id])
             embed.set_thumbnail(url=self.bot.user.avatar_url)
 
             if result == "file":
@@ -313,7 +313,15 @@ class SauceCommands(commands.Cog):
 
         return urls
 
-    # bot status
+    @commands.command()
+    async def info(self, ctx):
+        embed = discord.Embed(title="SauceBot", description="Serving the sauce since 2018.", url="https://github.com/PoldekPL/SauceBot", color=self.bot.embed_colors[ctx.guild.id])
+        embed.set_thumbnail(url=self.bot.user.avatar_url)
+        embed.add_field(name="\u200b", value="SauceBot has one purpose, to make finding ~~sauce~~ source for pictures easier. Provide a picture, select one (or all) search engines and you'll be one click away from finding the original.", inline=False)
+        embed.add_field(name="Usage", value="To learn about how to use the SauceBot, send a message with `sauce.help`.", inline=False)
+        embed.set_footer(text="-- SauceBot written by PoldekPL#0105. --")
+        await ctx.send(embed=embed)
+
     @commands.command()
     async def status(self, ctx):
         pver = sys.version_info
@@ -331,7 +339,7 @@ class SauceCommands(commands.Cog):
             await ctx.send(part)
 
     @commands.has_permissions(administrator=True)
-    @commands.command(aliases = ['reload'])
+    @commands.command(aliases=['reload'])
     async def restart(self, ctx):
         # log the use of restart command
         print("[{}]: Received restart command.".format(getLogFormattedTime()))
@@ -357,7 +365,7 @@ class SauceCommands(commands.Cog):
         os.execl(os.path.abspath(__file__), " ")
 
     @commands.has_permissions(administrator=True)
-    @commands.command(aliases = ["loadfiles"])
+    @commands.command(aliases=["loadfiles"])
     async def reloadfiles(self, ctx):
         print("[{}]: Reloading input files.".format(getLogFormattedTime()))
         self.bot.loadfiles()
