@@ -42,6 +42,7 @@ class SauceBot(commands.Bot):
     token_str = ""              # bot login token
     sauce_help = []             # help message
     # batch_data = {}             # batch mode data about who, where and what services
+    embed_colors = {}           # colors to use for embeds for each server the bot is in
 
     def __init__(self):
         super().__init__(command_prefix = ["sauce.", "s."])
@@ -56,6 +57,10 @@ class SauceBot(commands.Bot):
         # global batch_data
 
         print("[{}]: #BOOT# k. running as {}, discord.py version {}".format(getLogFormattedTime(), bot.user.name, discord.__version__))
+
+        # populate the dict of embed colors for each server
+        for g in self.guilds:
+            self.embed_colors[g.id] = g.me.color.value
 
         # if the bot bot was restarted with a restart message, tick it after the restart
         if os.path.exists(self.current_path + "/restart_msg_id"):
@@ -124,6 +129,26 @@ class SauceBot(commands.Bot):
         else:
             print("[{}]: Encountered CommandError:".format(getLogFormattedTime()))
             await super().on_command_error(ctx, exception)
+
+    async def on_member_update(self, before: discord.Member, after: discord.Member):
+        if after.id == self.user.id:
+            self.embed_colors[after.guild.id] = after.color.value
+
+    # This sadly does not work. When reordering roles in server, resulting in changing bot's top role and displayed color,
+    # event gets correctly caught but both .roles and .top_role do not get updateded, thus .color does not change either.
+    # Maybe it's something related to caching data. I could inquire about this or submit an issuse, but I'm not gonna do that.
+    # This situation is rare enough for me to leave it as a bug/missing feature.
+
+    # async def on_guild_role_update(self, before: discord.Role, after: discord.Role):
+    #     bot_member = after.guild.get_member(self.user.id)
+    #     if after in bot_member.roles:
+    #         self.embed_colors[after.guild.id] = bot_member.color.value
+
+    async def on_guild_join(self, guild):
+        self.embed_colors[guild.id] = guild.me.color.value
+
+    async def on_guild_remove(self, guild):
+        del self.embed_colors[guild.id]
 
     def loadfiles(self):
         file = open(self.current_path + "/token", "r")
@@ -211,7 +236,7 @@ class SauceCommands(commands.Cog):
         index = 1
         # iterate over attachments and provide search links for them
         for u in urls:
-            embed = discord.Embed()
+            embed = discord.Embed(color = self.bot.embed_colors[ctx.guild.id])
             embed.set_thumbnail(url=self.bot.user.avatar_url)
 
             if result == "file":
