@@ -56,7 +56,7 @@ class SauceBot(commands.Bot):
     async def on_ready(self):
         # global batch_data
 
-        print("[{}]: #BOOT# k. running as {}, discord.py version {}".format(getLogFormattedTime(), bot.user.name, discord.__version__))
+        print("[{}]: #BOOT# k. running as {}, discord.py version {}".format(getLogFormattedTime(), self.user.name, discord.__version__))
 
         # populate the dict of embed colors for each server
         for g in self.guilds:
@@ -89,7 +89,7 @@ class SauceBot(commands.Bot):
     async def on_message(self, message: discord.Message):
         # global batch_data
 
-        if message.author == bot.user:
+        if message.author == self.user:
             return      # don't reply to yourself
 
         #     # don't do anything if user wants to control batch mode
@@ -119,7 +119,7 @@ class SauceBot(commands.Bot):
         #             else:
         #                 await bot.send_message(message.channel, "{}, you're in batch mode in this channel. If you want to disable it, use `!batch`!".format(message.author.mention))
 
-        await bot.process_commands(message)
+        await self.process_commands(message)
 
     async def on_command_error(self, ctx, exception):
         # if user tried using an unknown command
