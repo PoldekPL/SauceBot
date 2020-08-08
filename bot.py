@@ -45,7 +45,7 @@ class SauceBot(commands.Bot):
     embed_colors = {}           # colors to use for embeds for each server the bot is in
 
     def __init__(self):
-        super().__init__(command_prefix = ["sauce.", "s."])
+        super().__init__(command_prefix=["sauce.", "s."])
         
         self.loadfiles()
 
