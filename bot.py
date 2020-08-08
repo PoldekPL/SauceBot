@@ -134,15 +134,9 @@ class SauceBot(commands.Bot):
         if after.id == self.user.id:
             self.embed_colors[after.guild.id] = after.color.value
 
-    # This sadly does not work. When reordering roles in server, resulting in changing bot's top role and displayed color,
-    # event gets correctly caught but both .roles and .top_role do not get updateded, thus .color does not change either.
-    # Maybe it's something related to caching data. I could inquire about this or submit an issuse, but I'm not gonna do that.
-    # This situation is rare enough for me to leave it as a bug/missing feature.
-
-    # async def on_guild_role_update(self, before: discord.Role, after: discord.Role):
-    #     bot_member = after.guild.get_member(self.user.id)
-    #     if after in bot_member.roles:
-    #         self.embed_colors[after.guild.id] = bot_member.color.value
+    async def on_guild_role_update(self, before: discord.Role, after: discord.Role):
+        if after in after.guild.me.roles:
+            self.embed_colors[after.guild.id] = after.guild.me.color.value
 
     async def on_guild_join(self, guild):
         self.embed_colors[guild.id] = guild.me.color.value

@@ -3,7 +3,7 @@
 
 ---
 
-SauceBot is a single-purpose Discord bot written in Python 3 with the latest (v1.3.4 at the time of writing this) discord.py library, meant to fulfill one goal - make reverse image search easier.
+SauceBot is a single-purpose Discord bot written in Python 3 with the latest (v1.4.0 at the time of writing this) discord.py library, meant to fulfill one goal - make reverse image search easier.
 
 It is a functional bot and can be easily used as a reference for people wanting to write their own Discord bots in Python.
 
