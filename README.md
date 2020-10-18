@@ -17,7 +17,9 @@ Once all that is done, you've got the virtual environment activated and you navi
 
 To invite the bot to your server, copy this link:
 
-`https://discordapp.com/oauth2/authorize?&client_id=CLIENT_ID&scope=bot&permissions=VALUE`
+```
+https://discordapp.com/oauth2/authorize?&client_id=CLIENT_ID&scope=bot&permissions=VALUE
+```
 
 to your browser, change `CLIENT_ID` to one shown for your "application" in Discord Developer portal, and `VALUE` to one you can get in *Bot Permissions* calculator, also in the Developer portal. Once you're done, press enter and go through the invitation process on the page this link will lead to.
 
