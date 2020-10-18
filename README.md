@@ -3,7 +3,7 @@
 
 ---
 
-SauceBot is a single-purpose Discord bot written in Python 3 with the latest (v1.4.0 at the time of writing this) discord.py library, meant to fulfill one goal - make reverse image search easier.
+SauceBot is a single-purpose Discord bot written in Python 3 with the latest (v1.5.0 at the time of writing this) discord.py library, meant to fulfill one goal - make reverse image search easier.
 
 It is a functional bot and can be easily used as a reference for people wanting to write their own Discord bots in Python.
 
@@ -26,5 +26,10 @@ Only permissions that SauceBot currently needs are:
 * Send Messages
 * Manage Messages
 * Add Reactions
+
+Additionally, since the addition of Privileged Gateway Intents to Discord API, the bot also requires both intents, that is:
+
+* Presence
+* Server Members
 
 If all goes well and you see the bot online in your server, send a message with `sauce.help` and bot will answer with usage instructions.
