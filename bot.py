@@ -67,7 +67,7 @@ class SauceBot(commands.Bot):
         for g in self.guilds:
             self.embed_colors[g.id] = g.me.color.value
 
-        # if the bot bot was restarted with a restart message, tick it after the restart
+        # if the bot was restarted with a restart message, tick it after the restart
         if os.path.exists(self.current_path + "/restart_msg_id"):
             file = open(self.current_path + "/restart_msg_id", "r")
             r_msg = file.read()
