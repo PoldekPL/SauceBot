@@ -297,7 +297,7 @@ class SauceCommands(commands.Cog):
                 return None
         else:
             # the command is followed by some text, detect if that's a valid discord message permalink
-            if re.search(r"(ptb\.|canary\.){0,1}https://discordapp\.com/channels/\d+/\d+/\d+", ctx.message.content, re.I) != None:
+            if re.search(r"https://(ptb\.|canary\.){0,1}discordapp\.com/channels/\d+/\d+/\d+", ctx.message.content, re.I) != None:
                 return "discord link"
             # if not, assume that's just a link to a picture. it's user's responsibility to make sure it's valid
             else:
