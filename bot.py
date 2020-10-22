@@ -22,17 +22,6 @@ def getLogFormattedTime():
 
     return formatted_time
 
-# # function to ensure proper restart of the bot in case of irrecoverable error
-# def restartHandler():
-#     # test for internet connection before restarting the bot
-#     # for good measure, test two different IP addresses
-#     while subprocess.run(args = ['ping', '-c', '1', '8.8.8.8'], stdout = subprocess.DEVNULL).returncode != 0 and subprocess.run(args = ['ping', '-c', '1', '1.1.1.1'], stdout = subprocess.DEVNULL).returncode != 0:
-#         time.sleep(3)
-
-#     print("[{}]: Had to restart with restartHandler".format(getLogFormattedTime()))
-#     os.execl(os.path.abspath(__file__), "")
-
-
 class SauceBot(commands.Bot):
 
     # CONSTANTS
@@ -477,15 +466,5 @@ class SauceCommands(commands.Cog):
 #             loop = False
 
 if __name__ == "__main__":
-    # for now, the restartHandler() will be left out. we'll see how stable bot is using new version of discord.py
-
-    # try:
     bot = SauceBot()
     bot.run()
-    # except:
-    #     # in case of any error, restart the bot
-    #     file = open(current_path + "/batch_data.pkl", "wb")
-    #     pickle.dump(batch_data, file, 4)
-    #     file.close()
-
-    #     restartHandler()
