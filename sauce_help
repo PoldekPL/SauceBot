@@ -13,6 +13,8 @@ Attach the image(s) to the message that invokes a command. If you're on mobile, 
 In the same message call a command and follow it with a link to an image. It should be a valid, publicly accessible link to an image, otherwise search engines will fail fetching and processing the image.
 **3. Discord message permalink**
 Just like the image link, but use the link that leads to a Discord message. Bot will detect it, fetch the message you've linked to and process the files attached to it.
+**4. Batch mode**
+When you have a large amount of pictures you want to sauce, batch mode is your friend. Use `sauce.batch` to learn more about it.
 
 $
 

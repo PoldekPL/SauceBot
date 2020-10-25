@@ -30,7 +30,6 @@ class SauceBot(commands.Bot):
     # VARIABLES
     token_str = ""              # bot login token
     sauce_help = []             # help message
-    # batch_data = {}             # batch mode data about who, where and what services
     embed_colors = {}           # colors to use for embeds for each server the bot is in
 
     def __init__(self):
@@ -40,16 +39,15 @@ class SauceBot(commands.Bot):
                                   reactions = True)
 
         super().__init__(command_prefix=["sauce.", "s."], intents=intents)
-        
+
         self.loadfiles()
 
         self.remove_command("help")
 
         self.add_cog(SauceCommands(self))
+        self.add_cog(SauceBatch(self))
 
     async def on_ready(self):
-        # global batch_data
-
         print("[{}]: #BOOT# k. running as {}, discord.py version {}".format(getLogFormattedTime(), self.user.name, discord.__version__))
 
         # populate the dict of embed colors for each server
@@ -74,44 +72,20 @@ class SauceBot(commands.Bot):
             await msg.add_reaction('✅')
             os.remove(self.current_path + "/restart_msg_id")
 
-        # if os.path.exists(current_path + "/batch_data.pkl"):
-        #     file = open(current_path + "/batch_data.pkl", "rb")
-        #     batch_data = pickle.load(file)
-        #     file.close()
-        #     os.remove(current_path + "/batch_data.pkl")
-
     async def on_message(self, message: discord.Message):
-        # global batch_data
-
+        # don't reply to yourself
         if message.author == self.user:
-            return      # don't reply to yourself
+            return
 
-        #     # don't do anything if user wants to control batch mode
-        #     if message.content.startswith("!b") or message.content.startswith("!batch"):
-        #         await bot.process_commands(message)
-        #         return
+        # don't do anything if user invokes commands
+        for prefix in self.command_prefix:
+            if message.content.startswith(prefix):
+                await bot.process_commands(message)
+                return
 
-        #     # if given user has batch mode enabled for given channel
-        #     services = batch_data.get((message.author.id, message.channel.id), None)
-        #     if services != None:
-        #         if len(services) > 0:
-        #             urls = getAttachmentURLs(message)
-        #             if len(urls) > 0:
-        #                 for u in urls:
-        #                     response = ""
-        #                     if "s" in services:
-        #                         response += sauceLink(u) + '\n'
-        #                     if "g" in services:
-        #                         response += googleLink(u) + '\n'
-        #                     if "t" in services:
-        #                         response += tineyeLink(u) + '\n'
-        #                     if "i" in services:
-        #                         response += iqdbLink(u) + '\n'
-        #                     if "y" in services:
-        #                         response += yandexLink(u)
-        #                     await bot.send_message(message.channel, response)
-        #             else:
-        #                 await bot.send_message(message.channel, "{}, you're in batch mode in this channel. If you want to disable it, use `!batch`!".format(message.author.mention))
+        # check if user who sent the message has currently enabled batch mode in the channel
+        ctx = await self.get_context(message)
+        await self.cogs["SauceBatch"].checkBatch(ctx)
 
         await self.process_commands(message)
 
@@ -147,8 +121,6 @@ class SauceBot(commands.Bot):
         help_str = file2.read()
         self.sauce_help = help_str.split('$')
         file2.close()
-
-        return
 
     def run(self):
         # I am not sure if reconnect=True does anything but I saw it in a different bot, so why not. I always had problems with bot stability using old discord.py library
@@ -340,10 +312,8 @@ class SauceCommands(commands.Cog):
         file.write(str(ctx.guild.id) + ' ' + str(ctx.channel.id) + ' ' + str(ctx.message.id))
         file.close()
 
-        # # save batch mode data
-        # file = open(current_path + "/batch_data.pkl", "wb")
-        # pickle.dump(batch_data, file, 4)
-        # file.close()
+        #save batch data
+        self.bot.cogs["SauceBatch"].savefiles()
 
         # properly shut down
         await self.bot.logout()
@@ -359,111 +329,141 @@ class SauceCommands(commands.Cog):
         self.bot.loadfiles()
         await ctx.message.add_reaction('✅')
 
-# # batch mode
-# @bot.command(pass_context = True, aliases = ["b"])
-# async def batch(ctx, *, text: str = None):
-#     global batch_data
+# BATCH MODE
+class SauceBatch(commands.Cog):
+    batch_data = {}             # batch mode data about who, where and what services
 
-#     temp_embed = discord.Embed(description = "Preparing batch mode for you...")
-#     msg_sent = await bot.send_message(ctx.message.channel, embed = temp_embed)
-#     await bot.add_reaction(msg_sent, '🇸')
-#     await bot.add_reaction(msg_sent, '🇬')
-#     await bot.add_reaction(msg_sent, '🇹')
-#     await bot.add_reaction(msg_sent, 'ℹ')
-#     await bot.add_reaction(msg_sent, '🇾')
-#     await bot.add_reaction(msg_sent, '✅')
-#     await bot.add_reaction(msg_sent, '🛑')
+    def __init__(self, bot):
+        self.bot = bot
 
-#     if batch_data.get((ctx.message.author.id, ctx.message.channel.id), None) == None:
-#         batch_data[(ctx.message.author.id, ctx.message.channel.id)] = set()
+        self.loadfiles()
 
-#     services = batch_data.get((ctx.message.author.id, ctx.message.channel.id))
+    def loadfiles(self):
+        if os.path.exists(self.bot.current_path + "/batch_data.pkl"):
+            file = open(self.bot.current_path + "/batch_data.pkl", "rb")
+            self.batch_data = pickle.load(file)
+            file.close()
+            os.remove(self.bot.current_path + "/batch_data.pkl")
 
-#     loop = True
-#     while(loop):
-#         # embed with current state of batch mode for user using the command
-#         batch_embed = discord.Embed(title = "Batch mode", colour = 0xb29a80)
+    def savefiles(self):
+        file = open(self.bot.current_path + "/batch_data.pkl", "wb")
+        pickle.dump(self.batch_data, file, 4)
+        file.close()
 
-#         batch_embed.add_field(name = "What is batch mode", value = "Batch mode allows you to find sources for large quantities of pictures. When enabled for at least one service, every time you send a message with attached picture(s), in response you will reveive link(s) that allow you to check with just one click if the source is known. Remember, in batch mode only *pictures attached* will be checked, not any links in messages.")
+    async def checkBatch(self, ctx):
+        # get enabled services, if any, for the user whose message caused the function call
+        if self.batch_data.get((ctx.author.id, ctx.channel.id), None) == None:
+            self.batch_data[(ctx.author.id, ctx.channel.id)] = set()
+        services = self.batch_data.get((ctx.author.id, ctx.channel.id))
 
-#         batch_embed.add_field(name = "How to control batch mode", value = "Toggle single services with appropriate reactions. To confirm what you set, use :white_check_mark:. To disable them all and stop batch mode, use :stop_sign:")
+        # don't do anything if user has no service enabled in batch mode
+        if services == set():
+            return
 
-#         embed_content = ""
-#         if "s" in services:
-#             embed_content += ":white_check_mark: SauceNAO\n"
-#         else:
-#             embed_content += ":x: SauceNAO\n"
+        # a bit of non-standard messing with the already incomplete context to make it work with honestly crazy call of a function that's usually a command
+        # in short, don't do what I did here. unless you fully understand what is happening and why. then, still don't do that.
+        ctx.prefix = ""
+        ctx.invoked_with = ""
+        await self.bot.cogs["SauceCommands"].replyLinks(ctx,
+                                                        saucenao=("s" in services),
+                                                        google=("g" in services),
+                                                        tineye=("t" in services),
+                                                        iqdb=("i" in services),
+                                                        yandex=("y" in services))
 
-#         if "g" in services:
-#             embed_content += ":white_check_mark: Google\n"
-#         else:
-#             embed_content += ":x: Google\n"
+    @commands.command(aliases=["b"])
+    async def batch(self, ctx):
+        # get enabled services for the user who called the command, initializing it first as empty set if needed
+        if self.batch_data.get((ctx.author.id, ctx.channel.id), None) == None:
+            self.batch_data[(ctx.author.id, ctx.channel.id)] = set()
+        services = self.batch_data.get((ctx.author.id, ctx.channel.id))
+        
+        # check if user used a shorthand for an action
+        text = ctx.message.content.replace(ctx.prefix + ctx.invoked_with, "").strip()
+        
+        if text == "stop" or text == "s":
+            # disable all services
+            services.clear()
+            await ctx.send(":stop_sign: You have stopped batch mode. All services have been disabled.")
+            return
+        elif text == "all" or text == "a":
+            # enable all services
+            services.add("s")
+            services.add("g")
+            services.add("t")
+            services.add("i")
+            services.add("y")
+            await ctx.send(":white_check_mark: Batch mode has been started for you in this channel with all services enabled.")
+            return
 
-#         if "t" in services:
-#             embed_content += ":white_check_mark: TinEye\n"
-#         else:
-#             embed_content += ":x: TinEye\n"
+        temp_embed = discord.Embed(description="Preparing batch mode for you...")
+        msg_sent = await ctx.send(embed=temp_embed)
+        await msg_sent.add_reaction('🇸')
+        await msg_sent.add_reaction('🇬')
+        await msg_sent.add_reaction('🇹')
+        await msg_sent.add_reaction('ℹ')
+        await msg_sent.add_reaction('🇾')
+        await msg_sent.add_reaction('✅')
+        await msg_sent.add_reaction('🛑')
 
-#         if "i" in services:
-#             embed_content += ":white_check_mark: IQDB\n"
-#         else:
-#             embed_content += ":x: IQDB\n"
+        loop = True
+        while(loop):
+            # embed with current state of batch mode for user using the command
+            batch_embed = discord.Embed(title="Batch mode", colour=self.bot.embed_colors[ctx.guild.id])
 
-#         if "y" in services:
-#             embed_content += ":white_check_mark: Yandex"
-#         else:
-#             embed_content += ":x: Yandex"
+            batch_embed.add_field(name="What is batch mode", value="Batch mode allows you to find sources for large quantities of pictures. When at least one service is enabled, every time you send a message in the channel you activated batch mode in, in response you will reveive link(s) that allow you to check with just one click if the source is known. After recent changes, batch mode works just like normal sauce command, allowing you to use attached pictures, links and even discord message permalinks.")
 
-#         batch_embed.add_field(name = "Enabled reverse search engines for {}:".format(ctx.message.author.name), value = embed_content)
-#         msg_sent = await bot.edit_message(msg_sent, embed = batch_embed)
+            batch_embed.add_field(name="How to control batch mode", value="Toggle single services with appropriate reactions. To confirm what you set, use :white_check_mark:. To disable them all and stop batch mode, use :stop_sign:\nShorthand commands are:\n`sauce.batch all` - quickly enable batch mode with all services in current channel\n`sauce.batch stop` - quickly stop batch mode in current channel")
 
-#         def check(reaction: discord.Reaction, user: discord.Member):
-#             return user == ctx.message.author
-#         res = await bot.wait_for_reaction(message=msg_sent, check = check)
-#         await bot.remove_reaction(msg_sent, res.reaction.emoji, ctx.message.author)
+            embed_content = ""
+            embed_content += ":white_check_mark: SauceNAO\n" if "s" in services else ":x: SauceNAO\n"
+            embed_content += ":white_check_mark: Google\n" if "g" in services else ":x: Google\n"
+            embed_content += ":white_check_mark: TinEye\n" if "t" in services else ":x: TinEye\n"
+            embed_content += ":white_check_mark: IQDB\n" if "i" in services else ":x: IQDB\n"
+            embed_content += ":white_check_mark: Yandex" if "y" in services else ":x: Yandex"
 
-#         if(res.reaction.emoji == '🇸'):     # toggle saucenao
-#             if "s" in services:
-#                 services.discard("s")
-#             else:
-#                 services.add("s")
+            batch_embed.add_field(name="Enabled reverse search engines for {}:".format(ctx.author.name), value=embed_content, inline=False)
+            await msg_sent.edit(embed=batch_embed)
 
-#         if(res.reaction.emoji == '🇬'):     # toggle google
-#             if "g" in services:
-#                 services.discard("g")
-#             else:
-#                 services.add("g")
+            # wait for reaction from the user, leave setting as they are if user does not react in 60 seconds
+            def check(reaction, user):
+                return reaction.message == msg_sent and user == ctx.author
+            try:
+                reaction, user = await self.bot.wait_for("reaction_add", check=check, timeout=60.0)
+            except asyncio.TimeoutError:
+                await msg_sent.delete()
+                await ctx.send(":white_check_mark: Your settings have been saved.")
+                break
 
-#         if(res.reaction.emoji == '🇹'):     # toggle tineye
-#             if "t" in services:
-#                 services.discard("t")
-#             else:
-#                 services.add("t")
+            await msg_sent.remove_reaction(reaction.emoji, ctx.author)
 
-#         if(res.reaction.emoji == 'ℹ'):      # toggle iqdb
-#             if "i" in services:
-#                 services.discard("i")
-#             else:
-#                 services.add("i")
+            if(reaction.emoji == '🇸'):     # toggle saucenao
+                services.discard("s") if ("s" in services) else services.add("s")
 
-#         if(res.reaction.emoji == '🇾'):      # toggle yandex
-#             if "y" in services:
-#                 services.discard("y")
-#             else:
-#                 services.add("y")
+            if(reaction.emoji == '🇬'):     # toggle google
+                services.discard("g") if ("g" in services) else services.add("g")
 
-#         if(res.reaction.emoji == '✅'):
-#             await bot.delete_message(msg_sent)
-#             await bot.send_message(ctx.message.channel, ":white_check_mark: Your settings have been saved.")
-#             loop = False
+            if(reaction.emoji == '🇹'):     # toggle tineye
+                services.discard("t") if ("t" in services) else services.add("t")
 
-#         if(res.reaction.emoji == '🛑'):
-#             # disable all services
-#             services.clear()
+            if(reaction.emoji == 'ℹ'):      # toggle iqdb
+                services.discard("i") if ("i" in services) else services.add("i")
 
-#             await bot.delete_message(msg_sent)
-#             await bot.send_message(ctx.message.channel, ":stop_sign: You have stopped batch mode. All services have been disabled.")
-#             loop = False
+            if(reaction.emoji == '🇾'):      # toggle yandex
+                services.discard("y") if ("y" in services) else services.add("y")
+
+            if(reaction.emoji == '✅'):
+                await msg_sent.delete()
+                await ctx.send(":white_check_mark: Your settings have been saved.")
+                loop = False
+
+            if(reaction.emoji == '🛑'):
+                # disable all services
+                services.clear()
+
+                await msg_sent.delete()
+                await ctx.send(":stop_sign: You have stopped batch mode. All services have been disabled.")
+                loop = False
 
 if __name__ == "__main__":
     bot = SauceBot()
