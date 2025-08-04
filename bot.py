@@ -52,24 +52,6 @@ class SauceBot(commands.Bot):
         for g in self.guilds:
             self.embed_colors[g.id] = g.me.color.value
 
-        # if the bot was restarted with a restart message, tick it after the restart
-        if os.path.exists(self.current_path + "/restart_msg_id"):
-            file = open(self.current_path + "/restart_msg_id", "r")
-            r_msg = file.read()
-            file.close()
-            msg_ids = r_msg.split()
-
-            # get the server
-            msg_guild = self.get_guild(int(msg_ids[0]))
-            # get the channel in the server
-            msg_channel = msg_guild.get_channel(int(msg_ids[1]))
-            # get the message in the channel... in the server
-            msg = await msg_channel.fetch_message(int(msg_ids[2]))
-
-            await msg.remove_reaction('♻', self.user)
-            await msg.add_reaction('✅')
-            os.remove(self.current_path + "/restart_msg_id")
-
     async def on_message(self, message: discord.Message):
         # don't reply to yourself
         if message.author == self.user:
@@ -295,30 +277,6 @@ class SauceCommands(commands.Cog):
     async def helpCommand(self, ctx):
         for part in self.bot.sauce_help:
             await ctx.send(part)
-
-    @commands.has_permissions(administrator=True)
-    @commands.command(aliases=['reload'])
-    async def restart(self, ctx):
-        # log the use of restart command
-        print("[{}]: Received restart command.".format(getLogFormattedTime()))
-
-        # signal that bot is rebooting
-        await ctx.message.add_reaction('♻')
-
-        # save the message ids
-        file = open(self.bot.current_path + "/restart_msg_id", "w")
-        file.write(str(ctx.guild.id) + ' ' + str(ctx.channel.id) + ' ' + str(ctx.message.id))
-        file.close()
-
-        #save batch data
-        self.bot.cogs["SauceBatch"].savefiles()
-
-        # properly shut down
-        await self.bot.logout()
-
-        # restart
-        print("[{}]: Rebooting...".format(getLogFormattedTime()))
-        os.execl(os.path.abspath(__file__), " ")
 
     @commands.has_permissions(administrator=True)
     @commands.command(aliases=["loadfiles"])
