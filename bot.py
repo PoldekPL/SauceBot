@@ -41,8 +41,9 @@ class SauceBot(commands.Bot):
 
         self.remove_command("help")
 
-        self.add_cog(SauceCommands(self))
-        self.add_cog(SauceBatch(self))
+    async def setup_hook(self) -> None:
+        await self.add_cog(SauceCommands(self))
+        await self.add_cog(SauceBatch(self))
 
     async def on_ready(self):
         print("[{}]: #BOOT# k. running as {}, discord.py version {}".format(getLogFormattedTime(), self.user.name, discord.__version__))
