@@ -1,19 +1,16 @@
 #!/usr/bin/env python3
 
-import discord
-from discord.ext import commands
 import asyncio
-import random
 import time
 import sys
-import traceback
 import os
 import os.path
-import subprocess
-import functools
 import re
 import pickle
 from urllib import parse
+
+import discord
+from discord.ext import commands
 
 # helper function for getting formatted time for log
 def getLogFormattedTime():
