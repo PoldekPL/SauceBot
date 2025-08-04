@@ -1,5 +1,13 @@
+env
+venv
+.env
+.venv
+
+.vscode
+
 token
+token.txt
+
 restart_msg_id
+
 batch_data.pkl
-/.vscode/
-/env/
