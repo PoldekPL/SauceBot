@@ -178,7 +178,7 @@ class SauceCommands(commands.Cog):
         # iterate over attachments and provide search links for them
         for u in urls:
             embed = discord.Embed(color=self.bot.embed_colors[ctx.guild.id])
-            embed.set_thumbnail(url=self.bot.user.avatar_url)
+            embed.set_thumbnail(url=self.bot.user.avatar.url)
 
             if result == "file":
                 embed.title = ":mag_right: Reverse searching attached files"
