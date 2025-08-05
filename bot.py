@@ -33,6 +33,7 @@ class SauceBot(commands.Bot):
         intents = discord.Intents(guilds = True,
                                   members = True,
                                   messages = True,
+                                  message_content = True,
                                   reactions = True)
 
         super().__init__(command_prefix=["sauce.", "s."], intents=intents)
