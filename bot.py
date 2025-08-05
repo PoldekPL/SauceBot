@@ -214,7 +214,7 @@ class SauceCommands(commands.Cog):
         return "https://saucenao.com/search.php?url={}".format(parse.quote_plus(url))
 
     def googleLink(self, url: str):
-        return "https://www.google.com/searchbyimage?&image_url={}".format(parse.quote_plus(url))
+        return "https://www.google.com/searchbyimage?client=app&image_url={}".format(parse.quote_plus(url))
 
     def tineyeLink(self, url: str):
         return "https://www.tineye.com/search?url={}".format(parse.quote_plus(url))
