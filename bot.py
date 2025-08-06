@@ -114,9 +114,9 @@ class SauceCommands(commands.Cog):
 
     @commands.command(name="all", aliases=["a"])
     async def sauceAll(self, ctx):
-        await self.replyLinks(ctx, saucenao=True, google=True, google_lens=True, tineye=True, iqdb=True, yandex=True, bing=True)
+        await self.replyLinks(ctx)
 
-    async def replyLinks(self, ctx, saucenao=False, google=False, google_lens=False, tineye=False, iqdb=False, yandex=False, bing=False):
+    async def replyLinks(self, ctx: commands.Context):
         # analyze the message to decide what's the user's intent
         result = self.analyzeCommand(ctx)
 
@@ -173,20 +173,13 @@ class SauceCommands(commands.Cog):
                 embed.add_field(name="Linked message:", value=link, inline=False)
                 embed.add_field(name="Found attachment {} of {}:".format(index, len(urls)), value=u, inline=False)
 
-            if saucenao == True:
-                embed.add_field(name="\u200b", value="**[SauceNAO]({})\n**".format(self.sauceLink(u)), inline=False)
-            if google == True:
-                embed.add_field(name="\u200b", value="**[Google (old, broken)]({})\n**".format(self.googleLink(u)), inline=False)
-            if google_lens == True:
-                embed.add_field(name="\u200b", value=f"**[Google Lens]({self.google_lens_link(u)})\n**", inline=False)
-            if tineye == True:
-                embed.add_field(name="\u200b", value="**[TinEye]({})\n**".format(self.tineyeLink(u)), inline=False)
-            if iqdb == True:
-                embed.add_field(name="\u200b", value="**[IQDB]({})\n**".format(self.iqdbLink(u)), inline=False)
-            if yandex == True:
-                embed.add_field(name="\u200b", value="**[Yandex]({})**".format(self.yandexLink(u)), inline=False)
-            if bing == True:
-                embed.add_field(name="\u200b", value="**[Bing]({})**".format(self.bing_link(u)), inline=False)
+            embed.add_field(name="\u200b", value="**[SauceNAO]({})\n**".format(self.sauceLink(u)), inline=False)
+            embed.add_field(name="\u200b", value="**[Google (old, broken)]({})\n**".format(self.googleLink(u)), inline=False)
+            embed.add_field(name="\u200b", value=f"**[Google Lens]({self.google_lens_link(u)})\n**", inline=False)
+            embed.add_field(name="\u200b", value="**[TinEye]({})\n**".format(self.tineyeLink(u)), inline=False)
+            embed.add_field(name="\u200b", value="**[IQDB]({})\n**".format(self.iqdbLink(u)), inline=False)
+            embed.add_field(name="\u200b", value="**[Yandex]({})**".format(self.yandexLink(u)), inline=False)
+            embed.add_field(name="\u200b", value="**[Bing]({})**".format(self.bing_link(u)), inline=False)
 
             await ctx.send(embed=embed)
             del embed
@@ -299,12 +292,7 @@ class SauceBatch(commands.Cog):
         # in short, don't do what I did here. unless you fully understand what is happening and why. then, still don't do that.
         ctx.prefix = ""
         ctx.invoked_with = ""
-        await self.bot.cogs["SauceCommands"].replyLinks(ctx,
-                                                        saucenao=("s" in services),
-                                                        google=("g" in services),
-                                                        tineye=("t" in services),
-                                                        iqdb=("i" in services),
-                                                        yandex=("y" in services))
+        await self.bot.cogs["SauceCommands"].replyLinks(ctx)
 
     @commands.command(aliases=["b"])
     async def batch(self, ctx):
