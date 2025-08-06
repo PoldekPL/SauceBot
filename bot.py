@@ -116,27 +116,6 @@ class SauceCommands(commands.Cog):
     async def sauceAll(self, ctx):
         await self.replyLinks(ctx, saucenao=True, google=True, google_lens=True, tineye=True, iqdb=True, yandex=True, bing=True)
 
-    # a majestic function name, I know
-    @commands.command(name="saucenao", aliases=["sauce", "s", "e621", "e"])
-    async def sauceSauce(self, ctx):
-        await self.replyLinks(ctx, saucenao=True)
-
-    @commands.command(name="google", aliases=["g"])
-    async def sauceGoogle(self, ctx):
-        await self.replyLinks(ctx, google_lens=True)
-
-    @commands.command(name="tineye", aliases=["t"])
-    async def sauceTineye(self, ctx):
-        await self.replyLinks(ctx, tineye=True)
-
-    @commands.command(name="iqdb", aliases=["i"])
-    async def sauceIQDB(self, ctx):
-        await self.replyLinks(ctx, iqdb=True)
-
-    @commands.command(name="yandex", aliases=["y"])
-    async def sauceYandex(self, ctx):
-        await self.replyLinks(ctx, yandex=True)
-
     async def replyLinks(self, ctx, saucenao=False, google=False, google_lens=False, tineye=False, iqdb=False, yandex=False, bing=False):
         # analyze the message to decide what's the user's intent
         result = self.analyzeCommand(ctx)
