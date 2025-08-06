@@ -13,7 +13,7 @@ import discord
 from discord.ext import commands
 
 # helper function for getting formatted time for log
-def getLogFormattedTime():
+def get_log_formatted_time():
     timestamp_now = time.gmtime()
     formatted_time = time.strftime("%Y-%m-%d %H:%M:%S", timestamp_now)
 
@@ -38,7 +38,7 @@ class SauceBot(commands.Bot):
 
         super().__init__(command_prefix=["sauce.", "s."], intents=intents)
 
-        self.loadfiles()
+        self.load_files()
 
         self.remove_command("help")
 
@@ -47,7 +47,7 @@ class SauceBot(commands.Bot):
         await self.add_cog(SauceBatch(self))
 
     async def on_ready(self):
-        print("[{}]: #BOOT# k. running as {}, discord.py version {}".format(getLogFormattedTime(), self.user.name, discord.__version__))
+        print("[{}]: #BOOT# k. running as {}, discord.py version {}".format(get_log_formatted_time(), self.user.name, discord.__version__))
 
         # populate the dict of embed colors for each server
         for g in self.guilds:
@@ -66,7 +66,7 @@ class SauceBot(commands.Bot):
 
         # check if user who sent the message has currently enabled batch mode in the channel
         ctx = await self.get_context(message)
-        await self.cogs["SauceBatch"].checkBatch(ctx)
+        await self.cogs["SauceBatch"].check_batch(ctx)
 
         await self.process_commands(message)
 
@@ -76,7 +76,7 @@ class SauceBot(commands.Bot):
             # do nothing
             pass
         else:
-            print("[{}]: Encountered CommandError:".format(getLogFormattedTime()))
+            print("[{}]: Encountered CommandError:".format(get_log_formatted_time()))
             await super().on_command_error(ctx, exception)
 
     async def on_member_update(self, before: discord.Member, after: discord.Member):
@@ -93,7 +93,7 @@ class SauceBot(commands.Bot):
     async def on_guild_remove(self, guild):
         del self.embed_colors[guild.id]
 
-    def loadfiles(self):
+    def load_files(self):
         file = open(self.current_path + "/token", "r")
         self.token_str = file.read()
         file.close()
@@ -113,18 +113,18 @@ class SauceCommands(commands.Cog):
         self.bot = bot
 
     @commands.command(name="all", aliases=["a"])
-    async def sauceAll(self, ctx):
-        await self.replyLinks(ctx)
+    async def sauce_all(self, ctx):
+        await self.reply_links(ctx)
 
-    async def replyLinks(self, ctx: commands.Context):
+    async def reply_links(self, ctx: commands.Context):
         # analyze the message to decide what's the user's intent
-        result = self.analyzeCommand(ctx)
+        result = self.analyze_command(ctx)
 
         # let's build a list of urls to generate links with
         urls = []
         if result == "file":
             # user attached file(s), get url(s)
-            urls = self.getMessageAttachmentURLs(ctx.message)
+            urls = self.get_message_attachment_urls(ctx.message)
 
         elif result == "link":
             # user has sent a string, assume it's a valin picture url
@@ -143,7 +143,7 @@ class SauceCommands(commands.Cog):
             linked_message = await linked_channel.fetch_message(int(ids[2]))
 
             # get the possible urls
-            urls = self.getMessageAttachmentURLs(linked_message)
+            urls = self.get_message_attachment_urls(linked_message)
 
             if len(urls) == 0:
                 await ctx.send(":warning: Linked message does not have attached pictures.")
@@ -173,12 +173,12 @@ class SauceCommands(commands.Cog):
                 embed.add_field(name="Linked message:", value=link, inline=False)
                 embed.add_field(name="Found attachment {} of {}:".format(index, len(urls)), value=u, inline=False)
 
-            embed.add_field(name="\u200b", value="**[SauceNAO]({})\n**".format(self.sauceLink(u)), inline=False)
-            embed.add_field(name="\u200b", value="**[Google (old, broken)]({})\n**".format(self.googleLink(u)), inline=False)
+            embed.add_field(name="\u200b", value="**[SauceNAO]({})\n**".format(self.sauce_link(u)), inline=False)
+            embed.add_field(name="\u200b", value="**[Google (old, broken)]({})\n**".format(self.google_link(u)), inline=False)
             embed.add_field(name="\u200b", value=f"**[Google Lens]({self.google_lens_link(u)})\n**", inline=False)
-            embed.add_field(name="\u200b", value="**[TinEye]({})\n**".format(self.tineyeLink(u)), inline=False)
-            embed.add_field(name="\u200b", value="**[IQDB]({})\n**".format(self.iqdbLink(u)), inline=False)
-            embed.add_field(name="\u200b", value="**[Yandex]({})**".format(self.yandexLink(u)), inline=False)
+            embed.add_field(name="\u200b", value="**[TinEye]({})\n**".format(self.tineye_link(u)), inline=False)
+            embed.add_field(name="\u200b", value="**[IQDB]({})\n**".format(self.iqdb_link(u)), inline=False)
+            embed.add_field(name="\u200b", value="**[Yandex]({})**".format(self.yandex_link(u)), inline=False)
             embed.add_field(name="\u200b", value="**[Bing]({})**".format(self.bing_link(u)), inline=False)
 
             await ctx.send(embed=embed)
@@ -186,29 +186,29 @@ class SauceCommands(commands.Cog):
             index += 1
         return
 
-    def sauceLink(self, url: str):
+    def sauce_link(self, url: str):
         return "https://saucenao.com/search.php?url={}".format(parse.quote_plus(url))
 
-    def googleLink(self, url: str):
+    def google_link(self, url: str):
         return "https://www.google.com/searchbyimage?client=app&image_url={}".format(parse.quote_plus(url))
 
     def google_lens_link(self, url: str) -> str:
         return f"https://lens.google.com/uploadbyurl?url={parse.quote_plus(url)}"
 
-    def tineyeLink(self, url: str):
+    def tineye_link(self, url: str):
         return "https://www.tineye.com/search?url={}".format(parse.quote_plus(url))
 
-    def iqdbLink(self, url: str):
+    def iqdb_link(self, url: str):
         return "https://iqdb.org/?url={}".format(parse.quote_plus(url))
 
-    def yandexLink(self, url: str):
+    def yandex_link(self, url: str):
         return "https://yandex.com/images/search?url={}&rpt=imageview".format(parse.quote_plus(url))
 
     def bing_link(self, url: str):
         return f"https://www.bing.com/images/searchbyimage?cbir=sbi&imgurl={parse.quote_plus(url)}"
 
     # ananlyze the command called by the user
-    def analyzeCommand(self, ctx: commands.Context):
+    def analyze_command(self, ctx: commands.Context):
         # NOTE: I know that using strings as return values is rather lazy, but it's not meant to be a *high performance* bot
 
         # if message body is empty (there is no text after the command)
@@ -227,7 +227,7 @@ class SauceCommands(commands.Cog):
             else:
                 return "link"
 
-    def getMessageAttachmentURLs(self, message: discord.Message):
+    def get_message_attachment_urls(self, message: discord.Message):
         urls = []
 
         # iterate over attached files and get their urls
@@ -246,15 +246,15 @@ class SauceCommands(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.command(name="help", aliases=["h"])
-    async def helpCommand(self, ctx):
+    async def help_command(self, ctx):
         for part in self.bot.sauce_help:
             await ctx.send(part)
 
     @commands.has_permissions(administrator=True)
     @commands.command(aliases=["loadfiles"])
-    async def reloadfiles(self, ctx):
-        print("[{}]: Reloading input files.".format(getLogFormattedTime()))
-        self.bot.loadfiles()
+    async def reload_files(self, ctx):
+        print("[{}]: Reloading input files.".format(get_log_formatted_time()))
+        self.bot.load_files()
         await ctx.message.add_reaction('✅')
 
 # BATCH MODE
@@ -264,21 +264,21 @@ class SauceBatch(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-        self.loadfiles()
+        self.load_files()
 
-    def loadfiles(self):
+    def load_files(self):
         if os.path.exists(self.bot.current_path + "/batch_data.pkl"):
             file = open(self.bot.current_path + "/batch_data.pkl", "rb")
             self.batch_data = pickle.load(file)
             file.close()
             os.remove(self.bot.current_path + "/batch_data.pkl")
 
-    def savefiles(self):
+    def save_files(self):
         file = open(self.bot.current_path + "/batch_data.pkl", "wb")
         pickle.dump(self.batch_data, file, 4)
         file.close()
 
-    async def checkBatch(self, ctx):
+    async def check_batch(self, ctx):
         # get enabled services, if any, for the user whose message caused the function call
         if self.batch_data.get((ctx.author.id, ctx.channel.id), None) == None:
             self.batch_data[(ctx.author.id, ctx.channel.id)] = set()
@@ -292,7 +292,7 @@ class SauceBatch(commands.Cog):
         # in short, don't do what I did here. unless you fully understand what is happening and why. then, still don't do that.
         ctx.prefix = ""
         ctx.invoked_with = ""
-        await self.bot.cogs["SauceCommands"].replyLinks(ctx)
+        await self.bot.cogs["SauceCommands"].reply_links(ctx)
 
     @commands.command(aliases=["b"])
     async def batch(self, ctx):
