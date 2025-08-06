@@ -70,15 +70,6 @@ class SauceBot(commands.Bot):
 
         await self.process_commands(message)
 
-    async def on_command_error(self, ctx, exception):
-        # if user tried using an unknown command
-        if type(exception) == discord.ext.commands.errors.CommandNotFound:
-            # do nothing
-            pass
-        else:
-            print("[{}]: Encountered CommandError:".format(get_log_formatted_time()))
-            await super().on_command_error(ctx, exception)
-
     async def on_member_update(self, before: discord.Member, after: discord.Member):
         if after.id == self.user.id:
             self.embed_colors[after.guild.id] = after.color.value
