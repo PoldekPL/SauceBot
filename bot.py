@@ -114,7 +114,7 @@ class SauceCommands(commands.Cog):
 
     @commands.command(name="all", aliases=["a"])
     async def sauceAll(self, ctx):
-        await self.replyLinks(ctx, saucenao=True, google=True, tineye=True, iqdb=True, yandex=True)
+        await self.replyLinks(ctx, saucenao=True, google=True, google_lens=True, tineye=True, iqdb=True, yandex=True)
 
     # a majestic function name, I know
     @commands.command(name="saucenao", aliases=["sauce", "s", "e621", "e"])
@@ -123,7 +123,7 @@ class SauceCommands(commands.Cog):
 
     @commands.command(name="google", aliases=["g"])
     async def sauceGoogle(self, ctx):
-        await self.replyLinks(ctx, google=True)
+        await self.replyLinks(ctx, google_lens=True)
 
     @commands.command(name="tineye", aliases=["t"])
     async def sauceTineye(self, ctx):
@@ -137,7 +137,7 @@ class SauceCommands(commands.Cog):
     async def sauceYandex(self, ctx):
         await self.replyLinks(ctx, yandex=True)
 
-    async def replyLinks(self, ctx, saucenao=False, google=False, tineye=False, iqdb=False, yandex=False):
+    async def replyLinks(self, ctx, saucenao=False, google=False, google_lens=False, tineye=False, iqdb=False, yandex=False):
         # analyze the message to decide what's the user's intent
         result = self.analyzeCommand(ctx)
 
@@ -197,7 +197,9 @@ class SauceCommands(commands.Cog):
             if saucenao == True:
                 embed.add_field(name="\u200b", value="**[SauceNAO]({})\n**".format(self.sauceLink(u)), inline=False)
             if google == True:
-                embed.add_field(name="\u200b", value="**[Google]({})\n**".format(self.googleLink(u)), inline=False)
+                embed.add_field(name="\u200b", value="**[Google (old, broken)]({})\n**".format(self.googleLink(u)), inline=False)
+            if google_lens == True:
+                embed.add_field(name="\u200b", value=f"**[Google Lens]({self.google_lens_link(u)})\n**", inline=False)
             if tineye == True:
                 embed.add_field(name="\u200b", value="**[TinEye]({})\n**".format(self.tineyeLink(u)), inline=False)
             if iqdb == True:
@@ -215,6 +217,9 @@ class SauceCommands(commands.Cog):
 
     def googleLink(self, url: str):
         return "https://www.google.com/searchbyimage?client=app&image_url={}".format(parse.quote_plus(url))
+
+    def google_lens_link(self, url: str) -> str:
+        return f"https://lens.google.com/uploadbyurl?url={parse.quote_plus(url)}"
 
     def tineyeLink(self, url: str):
         return "https://www.tineye.com/search?url={}".format(parse.quote_plus(url))
