@@ -47,7 +47,7 @@ class SauceBot(commands.Bot):
         await self.add_cog(SauceBatch(self))
 
     async def on_ready(self):
-        print("[{}]: #BOOT# k. running as {}, discord.py version {}".format(get_log_formatted_time(), self.user.name, discord.__version__))
+        print(f"[{get_log_formatted_time()}]: #BOOT# k. running as {self.user.name}, discord.py version {discord.__version__}")
 
         # populate the dict of embed colors for each server
         for g in self.guilds:
@@ -150,7 +150,7 @@ class SauceCommands(commands.Cog):
 
             if result == "file":
                 embed.title = ":mag_right: Reverse searching attached files"
-                embed.add_field(name="Attachment {} of {}:".format(index, len(urls)), value=u, inline=False)
+                embed.add_field(name=f"Attachment {index} of {len(urls)}:", value=u, inline=False)
 
             elif result == "link":
                 embed.title = ":mag_right: Reverse searching provided link"
@@ -160,15 +160,15 @@ class SauceCommands(commands.Cog):
                 embed.title = ":mag_right: Reverse searching images attached to linked message"
                 link = ctx.message.content.replace(ctx.prefix + ctx.invoked_with, "").strip()
                 embed.add_field(name="Linked message:", value=link, inline=False)
-                embed.add_field(name="Found attachment {} of {}:".format(index, len(urls)), value=u, inline=False)
+                embed.add_field(name=f"Found attachment {index} of {len(urls)}:", value=u, inline=False)
 
-            embed.add_field(name="\u200b", value="**[SauceNAO]({})\n**".format(self.sauce_link(u)), inline=False)
-            embed.add_field(name="\u200b", value="**[Google (old, broken)]({})\n**".format(self.google_link(u)), inline=False)
-            embed.add_field(name="\u200b", value=f"**[Google Lens]({self.google_lens_link(u)})\n**", inline=False)
-            embed.add_field(name="\u200b", value="**[TinEye]({})\n**".format(self.tineye_link(u)), inline=False)
-            embed.add_field(name="\u200b", value="**[IQDB]({})\n**".format(self.iqdb_link(u)), inline=False)
-            embed.add_field(name="\u200b", value="**[Yandex]({})**".format(self.yandex_link(u)), inline=False)
-            embed.add_field(name="\u200b", value="**[Bing]({})**".format(self.bing_link(u)), inline=False)
+            embed.add_field(name="\u200b", value=f"**[SauceNAO]({self.sauce_link(u)})**", inline=False)
+            embed.add_field(name="\u200b", value=f"**[Google (old, broken)]({self.google_link(u)})**", inline=False)
+            embed.add_field(name="\u200b", value=f"**[Google Lens]({self.google_lens_link(u)})**", inline=False)
+            embed.add_field(name="\u200b", value=f"**[TinEye]({self.tineye_link(u)})**", inline=False)
+            embed.add_field(name="\u200b", value=f"**[IQDB]({self.iqdb_link(u)})**", inline=False)
+            embed.add_field(name="\u200b", value=f"**[Yandex]({self.yandex_link(u)})**", inline=False)
+            embed.add_field(name="\u200b", value=f"**[Bing]({self.bing_link(u)})**", inline=False)
 
             await ctx.send(embed=embed)
             del embed
@@ -176,22 +176,22 @@ class SauceCommands(commands.Cog):
         return
 
     def sauce_link(self, url: str):
-        return "https://saucenao.com/search.php?url={}".format(parse.quote_plus(url))
+        return f"https://saucenao.com/search.php?url={parse.quote_plus(url)}"
 
     def google_link(self, url: str):
-        return "https://www.google.com/searchbyimage?client=app&image_url={}".format(parse.quote_plus(url))
+        return f"https://www.google.com/searchbyimage?client=app&image_url={parse.quote_plus(url)}"
 
     def google_lens_link(self, url: str) -> str:
         return f"https://lens.google.com/uploadbyurl?url={parse.quote_plus(url)}"
 
     def tineye_link(self, url: str):
-        return "https://www.tineye.com/search?url={}".format(parse.quote_plus(url))
+        return f"https://www.tineye.com/search?url={parse.quote_plus(url)}"
 
     def iqdb_link(self, url: str):
-        return "https://iqdb.org/?url={}".format(parse.quote_plus(url))
+        return f"https://iqdb.org/?url={parse.quote_plus(url)}"
 
     def yandex_link(self, url: str):
-        return "https://yandex.com/images/search?url={}&rpt=imageview".format(parse.quote_plus(url))
+        return f"https://yandex.com/images/search?url={parse.quote_plus(url)}&rpt=imageview"
 
     def bing_link(self, url: str):
         return f"https://www.bing.com/images/searchbyimage?cbir=sbi&imgurl={parse.quote_plus(url)}"
@@ -242,7 +242,7 @@ class SauceCommands(commands.Cog):
     @commands.has_permissions(administrator=True)
     @commands.command(aliases=["loadfiles"])
     async def reload_files(self, ctx):
-        print("[{}]: Reloading input files.".format(get_log_formatted_time()))
+        print(f"[{get_log_formatted_time()}]: Reloading input files.")
         self.bot.load_files()
         await ctx.message.add_reaction('✅')
 
@@ -332,7 +332,7 @@ class SauceBatch(commands.Cog):
             embed_content += ":white_check_mark: IQDB\n" if "i" in services else ":x: IQDB\n"
             embed_content += ":white_check_mark: Yandex" if "y" in services else ":x: Yandex"
 
-            batch_embed.add_field(name="Enabled reverse search engines for {}:".format(ctx.author.name), value=embed_content, inline=False)
+            batch_embed.add_field(name=f"Enabled reverse search engines for {ctx.author.name}:", value=embed_content, inline=False)
             await msg_sent.edit(embed=batch_embed)
 
             # wait for reaction from the user, leave setting as they are if user does not react in 60 seconds
