@@ -85,14 +85,12 @@ class SauceBot(commands.Bot):
         del self.embed_colors[guild.id]
 
     def load_files(self):
-        file = open(self.current_path + "/token", "r")
-        self.token_str = file.read()
-        file.close()
+        with open(self.current_path + "/token", "r", encoding="UTF-8") as token_file:
+            self.token_str = token_file.read()
 
-        file2 = open(self.current_path + "/sauce_help", "r")
-        help_str = file2.read()
-        self.sauce_help = help_str.split('$')
-        file2.close()
+        with open(self.current_path + "/sauce_help", "r", encoding="UTF-8") as help_file:
+            help_str = help_file.read()
+            self.sauce_help = help_str.split('$')
 
     def run(self):
         # I am not sure if reconnect=True does anything but I saw it in a different bot, so why not. I always had problems with bot stability using old discord.py library
@@ -259,15 +257,13 @@ class SauceBatch(commands.Cog):
 
     def load_files(self):
         if os.path.exists(self.bot.current_path + "/batch_data.pkl"):
-            file = open(self.bot.current_path + "/batch_data.pkl", "rb")
-            self.batch_data = pickle.load(file)
-            file.close()
+            with open(self.bot.current_path + "/batch_data.pkl", "rb") as pickle_file:
+                self.batch_data = pickle.load(pickle_file)
             os.remove(self.bot.current_path + "/batch_data.pkl")
 
     def save_files(self):
-        file = open(self.bot.current_path + "/batch_data.pkl", "wb")
-        pickle.dump(self.batch_data, file, 4)
-        file.close()
+        with open(self.bot.current_path + "/batch_data.pkl", "wb") as pickle_file:
+            pickle.dump(self.batch_data, pickle_file, 4)
 
     async def check_batch(self, ctx):
         # get enabled services, if any, for the user whose message caused the function call
