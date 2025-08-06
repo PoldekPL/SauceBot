@@ -114,7 +114,7 @@ class SauceCommands(commands.Cog):
 
     @commands.command(name="all", aliases=["a"])
     async def sauceAll(self, ctx):
-        await self.replyLinks(ctx, saucenao=True, google=True, google_lens=True, tineye=True, iqdb=True, yandex=True)
+        await self.replyLinks(ctx, saucenao=True, google=True, google_lens=True, tineye=True, iqdb=True, yandex=True, bing=True)
 
     # a majestic function name, I know
     @commands.command(name="saucenao", aliases=["sauce", "s", "e621", "e"])
@@ -137,7 +137,7 @@ class SauceCommands(commands.Cog):
     async def sauceYandex(self, ctx):
         await self.replyLinks(ctx, yandex=True)
 
-    async def replyLinks(self, ctx, saucenao=False, google=False, google_lens=False, tineye=False, iqdb=False, yandex=False):
+    async def replyLinks(self, ctx, saucenao=False, google=False, google_lens=False, tineye=False, iqdb=False, yandex=False, bing=False):
         # analyze the message to decide what's the user's intent
         result = self.analyzeCommand(ctx)
 
@@ -206,6 +206,8 @@ class SauceCommands(commands.Cog):
                 embed.add_field(name="\u200b", value="**[IQDB]({})\n**".format(self.iqdbLink(u)), inline=False)
             if yandex == True:
                 embed.add_field(name="\u200b", value="**[Yandex]({})**".format(self.yandexLink(u)), inline=False)
+            if bing == True:
+                embed.add_field(name="\u200b", value="**[Bing]({})**".format(self.bing_link(u)), inline=False)
 
             await ctx.send(embed=embed)
             del embed
@@ -229,6 +231,9 @@ class SauceCommands(commands.Cog):
 
     def yandexLink(self, url: str):
         return "https://yandex.com/images/search?url={}&rpt=imageview".format(parse.quote_plus(url))
+
+    def bing_link(self, url: str):
+        return f"https://www.bing.com/images/searchbyimage?cbir=sbi&imgurl={parse.quote_plus(url)}"
 
     # ananlyze the command called by the user
     def analyzeCommand(self, ctx: commands.Context):
