@@ -55,7 +55,7 @@ class SauceBot(commands.Bot):
         for g in self.guilds:
             self.embed_colors[g.id] = g.me.color.value
 
-    async def on_message(self, message: discord.Message):
+    async def on_message(self, message: discord.Message, /) -> None:
         # don't reply to yourself
         if message.author == self.user:
             return
