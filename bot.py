@@ -163,8 +163,7 @@ class SauceCommands(commands.Cog):
                 embed.add_field(name=f"Found attachment {index} of {len(urls)}:", value=u, inline=False)
 
             embed.add_field(name="\u200b", value=f"**[SauceNAO]({self.sauce_link(u)})**", inline=False)
-            embed.add_field(name="\u200b", value=f"**[Google (old, broken)]({self.google_link(u)})**", inline=False)
-            embed.add_field(name="\u200b", value=f"**[Google Lens]({self.google_lens_link(u)})**", inline=False)
+            embed.add_field(name="\u200b", value=f"**[Google Lens]({self.google_link(u)})**", inline=False)
             embed.add_field(name="\u200b", value=f"**[TinEye]({self.tineye_link(u)})**", inline=False)
             embed.add_field(name="\u200b", value=f"**[IQDB]({self.iqdb_link(u)})**", inline=False)
             embed.add_field(name="\u200b", value=f"**[Yandex]({self.yandex_link(u)})**", inline=False)
@@ -178,10 +177,7 @@ class SauceCommands(commands.Cog):
     def sauce_link(self, url: str):
         return f"https://saucenao.com/search.php?url={parse.quote_plus(url)}"
 
-    def google_link(self, url: str):
-        return f"https://www.google.com/searchbyimage?client=app&image_url={parse.quote_plus(url)}"
-
-    def google_lens_link(self, url: str) -> str:
+    def google_link(self, url: str) -> str:
         return f"https://lens.google.com/uploadbyurl?url={parse.quote_plus(url)}"
 
     def tineye_link(self, url: str):
