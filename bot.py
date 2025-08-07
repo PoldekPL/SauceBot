@@ -70,11 +70,11 @@ class SauceBot(commands.Bot):
 
         await self.process_commands(message)
 
-    async def on_member_update(self, before: discord.Member, after: discord.Member):
+    async def on_member_update(self, _before: discord.Member, after: discord.Member):
         if after.id == self.user.id:
             self.embed_colors[after.guild.id] = after.color.value
 
-    async def on_guild_role_update(self, before: discord.Role, after: discord.Role):
+    async def on_guild_role_update(self, _before: discord.Role, after: discord.Role):
         if after in after.guild.me.roles:
             self.embed_colors[after.guild.id] = after.guild.me.color.value
 
