@@ -12,6 +12,8 @@ from urllib import parse
 import discord
 from discord.ext import commands
 
+import sauce_ui
+
 # helper function for getting formatted time for log
 def get_log_formatted_time():
     timestamp_now = time.gmtime()
@@ -223,11 +225,8 @@ class SauceCommands(commands.Cog):
 
     @commands.command()
     async def info(self, ctx):
-        embed = discord.Embed(title="SauceBot", description="Serving the sauce since 2018.", url="https://github.com/PoldekPL/SauceBot", color=self.bot.embed_colors[ctx.guild.id])
-        embed.set_thumbnail(url=self.bot.user.avatar_url)
-        embed.add_field(name="\u200b", value="SauceBot has one purpose, to make finding ~~sauce~~ source for pictures easier. Provide a picture, select one (or all) search engines and you'll be one click away from finding the original.", inline=False)
-        embed.add_field(name="Usage", value="To learn about how to use the SauceBot, send a message with `sauce.help`.", inline=False)
-        embed.set_footer(text="-- SauceBot written by PoldekPL#0105. --")
+        """Reply to user with general information about the bot."""
+        embed = sauce_ui.bot_info_embed(embed_color=self.bot.embed_colors[ctx.guild.id], avatar_url=self.bot.user.avatar.url)
         await ctx.send(embed=embed)
 
     @commands.command(name="help", aliases=["h"])
