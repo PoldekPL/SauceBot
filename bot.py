@@ -16,12 +16,14 @@ import sauce_ui
 
 # helper function for getting formatted time for log
 def get_log_formatted_time():
+    """Return nicely formatted current time for logging purposes."""
     timestamp_now = time.gmtime()
     formatted_time = time.strftime("%Y-%m-%d %H:%M:%S", timestamp_now)
 
     return formatted_time
 
 class SauceBot(commands.Bot):
+    """SauceBot class with internal functions and event handlers."""
 
     # CONSTANTS
     current_path = sys.path[0]
@@ -49,6 +51,7 @@ class SauceBot(commands.Bot):
         await self.add_cog(SauceBatch(self))
 
     async def on_ready(self):
+        """Run one-time events after booting up - log boot time, update own colors in guilds for embeds."""
         print(f"[{get_log_formatted_time()}]: #BOOT# k. running as {self.user.name}, discord.py version {discord.__version__}")
 
         # populate the dict of embed colors for each server
@@ -73,20 +76,26 @@ class SauceBot(commands.Bot):
         await self.process_commands(message)
 
     async def on_member_update(self, _before: discord.Member, after: discord.Member):
+        """Handle member updates to check if own color for embeds needs to be updated."""
         if after.id == self.user.id:
             self.embed_colors[after.guild.id] = after.color.value
 
     async def on_guild_role_update(self, _before: discord.Role, after: discord.Role):
+        """Handle role updates to check if own color for embeds needs to be updated."""
         if after in after.guild.me.roles:
             self.embed_colors[after.guild.id] = after.guild.me.color.value
 
     async def on_guild_join(self, guild):
+        """Handle guild join events to set own color for embeds."""
         self.embed_colors[guild.id] = guild.me.color.value
 
     async def on_guild_remove(self, guild):
+        """Handle guild leave events to discard own color for embeds."""
         del self.embed_colors[guild.id]
 
     def load_files(self):
+        """Load required external files - bot token and bot usage help documentation."""
+
         with open(self.current_path + "/token", "r", encoding="UTF-8") as token_file:
             self.token_str = token_file.read()
 
