@@ -95,8 +95,7 @@ class SauceBot(commands.Bot):
             self.sauce_help = help_str.split('$')
 
     def run(self):
-        # I am not sure if reconnect=True does anything but I saw it in a different bot, so why not. I always had problems with bot stability using old discord.py library
-        super().run(self.token_str, reconnect=True)
+        super().run(self.token_str)
 
 # COMMANDS
 class SauceCommands(commands.Cog):
