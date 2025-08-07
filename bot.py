@@ -239,13 +239,6 @@ class SauceCommands(commands.Cog):
         for part in self.bot.sauce_help:
             await ctx.send(part)
 
-    @commands.has_permissions(administrator=True)
-    @commands.command(aliases=["loadfiles"])
-    async def reload_files(self, ctx):
-        print(f"[{get_log_formatted_time()}]: Reloading input files.")
-        self.bot.load_files()
-        await ctx.message.add_reaction('✅')
-
 # BATCH MODE
 class SauceBatch(commands.Cog):
     batch_data = {}             # batch mode data about who, where and what services
