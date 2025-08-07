@@ -23,6 +23,11 @@ def gear_embed(message: str) -> discord.Embed:
     embed = discord.Embed(description=f":gear: {message}", color=0x66757f)
     return embed
 
+def question_embed(message: str) -> discord.Embed:
+    """Return a question-style embed with provided message."""
+    embed = discord.Embed(description=f":grey_question: {message}", color=0xccd6dd)
+    return embed
+
 def bot_info_embed(embed_color: int, avatar_url: str) -> discord.Embed:
     """Return a ready-made embed with general information about the bot."""
     embed = discord.Embed(title="SauceBot", description="Serving the sauce since 2018.", url="https://github.com/PoldekPL/SauceBot", color=embed_color)

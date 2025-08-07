@@ -145,11 +145,13 @@ class SauceCommands(commands.Cog):
             urls = self.get_message_attachment_urls(linked_message)
 
             if len(urls) == 0:
-                await ctx.send(":warning: Linked message does not have attached pictures.")
+                warn_embed = sauce_ui.warning_embed(message="Linked message does not have attached pictures.")
+                await ctx.send(embed=warn_embed)
                 return
 
         else: # result == None
-            await ctx.send(":grey_question: You have not provided anything to perform reverse search on. If you want to learn how to use SauceBot, send `sauce.help`.")
+            question_embed = sauce_ui.question_embed(message="You have not provided anything to perform reverse search on. If you want to learn how to use SauceBot, send `sauce.help`.")
+            await ctx.send(embed=question_embed)
             return
 
         index = 1
